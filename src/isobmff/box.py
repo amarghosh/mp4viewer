@@ -45,15 +45,6 @@ class Box(object):
         return "%s:%d" %(self.boxtype, self.size)
 
 
-class ContainerBox(Box):
-    def __init__(self, buf):
-        self.parse(buf)
-
-    def parse(self, buf):
-        super(ContainerBox, self).parse(buf)
-        self.parse_children(buf)
-
-
 class FullBox(Box):
     def __init__(self, buf):
         self.parse(buf)
@@ -188,6 +179,37 @@ class TrackHeader(FullBox):
         return s
 
 
+class MediaHeader(FullBox):
+    def __init__(self, buf):
+        self.parse(buf)
+
+    def parse(self, buf):
+        super(MediaHeader, self).parse(buf)
+        if self.version == 1:
+            self.creation_time = buf.readint64()
+            self.modification_time = buf.readint64()
+            self.timescale = buf.readint32()
+            self.duration = buf.readint64()
+        else:
+            self.creation_time = buf.readint32()
+            self.modification_time = buf.readint32()
+            self.timescale = buf.readint32()
+            self.duration = buf.readint32()
+        self.language = buf.readint16() & 0x7FFF
+        buf.skipbytes(2)
+
+    def formatted_str(self, prefix):
+        from utils import parse_iso639_2_15bit
+        s = super(MediaHeader, self).formatted_str(prefix) + '\n'
+        prefix += '    '
+        s += prefix + "creation time: %d" %(self.creation_time) + "\n"
+        s += prefix + "modification time: %d" %(self.modification_time) + "\n"
+        s += prefix + "timescale: %d" %(self.timescale) + "\n"
+        s += prefix + "duration: %d" %(self.duration) + "\n"
+        s += prefix + "language: %d (%s)" %(self.language, parse_iso639_2_15bit(self.language))
+        return s
+
+
 def getboxlist(buf, maxlength=-1):
     boxes = []
     bytes_consumed = 0
@@ -201,6 +223,8 @@ def getboxlist(buf, maxlength=-1):
             box = MovieHeader(buf)
         elif fourcc == 'tkhd':
             box = TrackHeader(buf)
+        elif fourcc == 'mdhd':
+            box = MediaHeader(buf)
         elif fourcc in ['moov', 'trak', 'edts', 'mdia',
                 'minf', 'dinf', 'stbl', 'mvex',
                 'moof', 'traf', 'mfra', 'skip',
