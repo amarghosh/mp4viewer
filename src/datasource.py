@@ -38,6 +38,8 @@ class DataBuffer:
         return self.read_ptr < self.buf_size
 
     def checkbuffer(self, length):
+        if length < 0:
+            raise Exception("Negative bytes to check %d" %(length))
         remaining_bytes = self.buf_size - self.read_ptr
         if remaining_bytes < length:
             self.readmore(length - remaining_bytes)
@@ -80,12 +82,13 @@ class DataBuffer:
         return self.readint(8)
 
     def skipbytes(self, count):
+        if count < 0:
+            raise Exception("Negative bytes to skip %d" %(count))
         remaining_bytes = self.buf_size - self.read_ptr
         if count < remaining_bytes:
             self.read_ptr += count
         else:
             # TODO: would this seek beyond?
-            # print "skipping %d" %(count - remaining_bytes)
             self.source.seek(count - remaining_bytes, os.SEEK_CUR)
             self.data = ''
             self.stream_offset += self.read_ptr + count
