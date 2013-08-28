@@ -52,12 +52,7 @@ class FormatInfo(object):
         return self.header_prefix + FormatInfo.COLOR_HEADER + text + FormatInfo.ENDCOL + '\n'
 
     def add_data(self, text):
-        kv = text.split(':')
-        if len(kv) == 2:
-            return self.add_attr(kv[0], kv[1].strip())
-        else:
-            return self.data_prefix + text + '\n'
-
+        return self.data_prefix + text + '\n'
 
     def add_attr(self, key, value):
         return self.data_prefix + FormatInfo.COLOR_ATTR + key + FormatInfo.ENDCOL + ": %s\n" %(str(value))
