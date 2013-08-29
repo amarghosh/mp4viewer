@@ -29,9 +29,12 @@ class MovieHeader(box.FullBox):
         self.next_track_id = buf.readint32()
 
     def formatted_str(self, fmt_info):
+        from utils import utc_from_seconds_since_1904
         s = super(MovieHeader, self).formatted_str(fmt_info)
-        s += fmt_info.add_attr("creation time", self.creation_time)
-        s += fmt_info.add_attr("modification time", self.modification_time)
+        s += fmt_info.add_attr("creation time", "%s (%d)" %(
+            utc_from_seconds_since_1904(self.creation_time).ctime(), self.creation_time))
+        s += fmt_info.add_attr("modification time", "%s (%d)" %(
+            utc_from_seconds_since_1904(self.modification_time).ctime(), self.modification_time))
         s += fmt_info.add_attr("timescale", self.timescale)
         s += fmt_info.add_attr("duration", self.duration)
         s += fmt_info.add_attr("rate", "0x%08X" %(self.rate))
@@ -74,9 +77,12 @@ class TrackHeader(box.FullBox):
         self.height = buf.readint32()
 
     def formatted_str(self, fmt_info):
+        from utils import utc_from_seconds_since_1904
         s = super(TrackHeader, self).formatted_str(fmt_info)
-        s += fmt_info.add_attr("creation time", self.creation_time)
-        s += fmt_info.add_attr("modification time", self.modification_time)
+        s += fmt_info.add_attr("creation time", "%s (%d)" %(
+            utc_from_seconds_since_1904(self.creation_time).ctime(), self.creation_time))
+        s += fmt_info.add_attr("modification time", "%s (%d)" %(
+            utc_from_seconds_since_1904(self.modification_time).ctime(), self.modification_time))
         s += fmt_info.add_attr("track id", self.track_id)
         s += fmt_info.add_attr("duration", self.duration)
         s += fmt_info.add_attr("layer", "0x%04X" %(self.layer))
@@ -112,9 +118,12 @@ class MediaHeader(box.FullBox):
 
     def formatted_str(self, fmt_info):
         from utils import parse_iso639_2_15bit
+        from utils import utc_from_seconds_since_1904
         s = super(MediaHeader, self).formatted_str(fmt_info)
-        s += fmt_info.add_attr("creation time", self.creation_time)
-        s += fmt_info.add_attr("modification time", self.modification_time)
+        s += fmt_info.add_attr("creation time", "%s (%d)" %(
+            utc_from_seconds_since_1904(self.creation_time).ctime(), self.creation_time))
+        s += fmt_info.add_attr("modification time", "%s (%d)" %(
+            utc_from_seconds_since_1904(self.modification_time).ctime(), self.modification_time))
         s += fmt_info.add_attr("timescale", self.timescale)
         s += fmt_info.add_attr("duration", self.duration)
         s += fmt_info.add_attr("language", "%d (%s)" %(self.language, parse_iso639_2_15bit(self.language)))
