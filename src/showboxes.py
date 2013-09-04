@@ -6,6 +6,7 @@ import argparse
 
 from datasource import DataBuffer
 from console import ConsoleRenderer
+from gui import GtkRenderer
 from tree import Tree, Attr
 
 def getboxlist(buf, parent=None):
@@ -77,14 +78,11 @@ def main():
     parser = argparse.ArgumentParser(
         description='Process iso-bmff file and list the boxes and their contents')
     parser.add_argument('-f', choices=['stdout','xml','gui'], default='stdout',
-        help='Output format (only stdout is supported as of now)', dest='output_format')
+        help='output format (only stdout is supported as of now)', dest='output_format')
     parser.add_argument('-c', '--color', choices=['on', 'off'], default='on', dest='color',
-        help='Turn on/off colors in console based output (defaults to true)')
+        help='turn on/off colors in console based output; defaults to true')
     parser.add_argument('input_file', metavar='iso-base-media-file', help='Path to iso media file')
     args = parser.parse_args()
-    if args.output_format != 'stdout':
-        print "Only stdout is supported as of now"
-        args.output_format = 'stdout'
 
     root = get_tree_from_file(args.input_file)
 
@@ -93,6 +91,9 @@ def main():
         renderer = ConsoleRenderer('  ')
         if args.color == 'off':
             renderer.disable_colors()
+    if args.output_format == 'gui':
+        renderer = GtkRenderer()
+
     renderer.render(root)
 
 
