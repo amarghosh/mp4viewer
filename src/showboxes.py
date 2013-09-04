@@ -5,81 +5,95 @@ import sys
 import argparse
 
 from datasource import DataBuffer
-from isobmff.box import getboxlist
+from console import ConsoleRenderer
+from tree import Tree, Attr
 
-class FormatInfo(object):
-    VERT = '!'
-    HORI = '-'
-    COLOR_HEADER = '\033[31m'
-    COLOR_ATTR = '\033[36m'
-    ENDCOL = '\033[0m'
+def getboxlist(buf, parent=None):
+    from isobmff.box import Box
+    boxes = []
+    try:
+        while buf.hasmore():
+            box = Box.getnextbox(buf, parent)
+            boxes.append(box)
+    except:
+        import traceback
+        print traceback.format_exc()
+    return boxes
 
-    @staticmethod
-    def updatecolors():
-        if not sys.stdout.isatty():
-            FormatInfo.COLOR_HEADER = ''
-            FormatInfo.COLOR_ATTR = ''
-            FormatInfo.ENDCOL = ''
-
-    def __init__(self, offset=None, indent_unit='    ', have_children=False):
-        self.offset = '' if offset is None else offset
-        self.indent_unit = indent_unit
-        self.update(have_children)
-
-    def update(self, have_children):
-        if have_children:
-            self.have_children = True
-            self.data_prefix = self.offset + self.indent_unit[:-1] + FormatInfo.VERT + self.indent_unit
+def get_box_node(box):
+    from isobmff.box import Box
+    node = Tree(box.boxtype)
+    for field in box.generate_fields():
+        if isinstance(field, Box):
+            add_box(node, field)
         else:
-            self.have_children = False
-            self.data_prefix = self.offset + self.indent_unit + self.indent_unit
-        self.header_prefix = self.offset + '`' + self.indent_unit.replace(' ', FormatInfo.HORI)[1:]
+            node.add_attr(field[0], field[1])
+    return node
 
-    def set_siblingstatus(self, value=False):
-        if value:
-            self.offset = self.offset[:-1] + FormatInfo.VERT
-        else:
-            self.offset = self.offset[:-1] + ' '
-        self.update(self.have_children)
+# Using python reflection to get the list of properties from boxes.
+# The properties are listed in alphabetical order.
+# TODO: Handle each box separately and add properties in proper order
+#def get_box_node(box):
+#    node = Tree(box.boxtype)
+#    from isobmff.box import Box
+#    for name in dir(box):
+#        field = getattr(box, name)
+#        if callable(field):
+#            continue
+#        if name.startswith('__'):
+#            continue
+#        # skip bookkeeping variables
+#        if name in ['boxtype', 'children', 'islarge', 'parent', 'consumed_bytes']:
+#            continue
+#        if type(field) is list and len(field):
+#            if isinstance(field[0], Box):
+#                for child in field:
+#                    add_box(node, child)
+#                continue
+#        name = name.replace('_', ' ')
+#        node.add_attr(name, field)
+#    return node
 
-    def get_next(self, have_children=False):
-        newoffset = self.offset + self.indent_unit
-        if self.have_children:
-            newoffset = newoffset[:-1] + FormatInfo.VERT
-        return FormatInfo(newoffset, self.indent_unit, have_children)
+def add_box(parent, box):
+    box_node = parent.add_child(get_box_node(box))
+    for child in box.children:
+        add_box(box_node, child)
+    return box_node
 
-    def add_header(self, text):
-        return self.header_prefix + FormatInfo.COLOR_HEADER + text + FormatInfo.ENDCOL + '\n'
 
-    def add_data(self, text):
-        return self.data_prefix + text + '\n'
-
-    def add_attr(self, key, value):
-        return self.data_prefix + FormatInfo.COLOR_ATTR + key + FormatInfo.ENDCOL + ": %s\n" %(str(value))
+def get_tree_from_file(path):
+    try:
+        fd = open(path, 'r')
+    except:
+        raise "Invalid file name %s" %(path)
+    boxes = getboxlist(DataBuffer(fd))
+    root = Tree(os.path.basename(path))
+    for box in boxes:
+        add_box(root, box)
+    return root
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Process isobmff file and list the boxes and their contents')
-    parser.add_argument('input_file', metavar='file', help='Path to iso media file')
+    parser = argparse.ArgumentParser(
+        description='Process iso-bmff file and list the boxes and their contents')
+    parser.add_argument('-f', choices=['stdout','xml','gui'], default='stdout',
+        help='Output format (only stdout is supported as of now)', dest='output_format')
+    parser.add_argument('-c', '--color', choices=['on', 'off'], default='on', dest='color',
+        help='Turn on/off colors in console based output (defaults to true)')
+    parser.add_argument('input_file', metavar='iso-base-media-file', help='Path to iso media file')
     args = parser.parse_args()
-    try:
-        size = os.stat(args.input_file).st_size
-        f = open(args.input_file, 'r')
-    except:
-        print "Invalid file name %s" %(args.input_file)
-        return 2
+    if args.output_format != 'stdout':
+        print "Only stdout is supported as of now"
+        args.output_format = 'stdout'
 
-    buf = DataBuffer(f)
-    boxes = getboxlist(buf)
+    root = get_tree_from_file(args.input_file)
 
-    FormatInfo.updatecolors()
-
-    fmt = FormatInfo('  ')
-    fmt.set_siblingstatus(True)
-    for i in range(len(boxes)):
-        if i == len(boxes) - 1:
-            fmt.set_siblingstatus(False);
-        boxes[i].display(fmt)
+    renderer = None
+    if args.output_format == 'stdout':
+        renderer = ConsoleRenderer('  ')
+        if args.color == 'off':
+            renderer.disable_colors()
+    renderer.render(root)
 
 
 if __name__ == "__main__":

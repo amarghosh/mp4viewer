@@ -1,6 +1,8 @@
 
 import sys
 
+# Set container flag for pure containers. Boxes with data and children should be
+# handled in their own subclass
 class Box(object):
     def __init__(self, buf, parent=None, container = False):
         self.parent = parent
@@ -35,19 +37,6 @@ class Box(object):
             self.children.append(box)
             self.consumed_bytes += box.size
 
-    def display(self, fmt_info, my_index=0):
-        fmt_info.update(len(self.children) != 0)
-        sys.stdout.write("%s" %(self.formatted_str(fmt_info)))
-        nxt_fmt = fmt_info.get_next(True)
-        for i in range(self.get_child_count()):
-            if i + 1 == self.get_child_count():
-                nxt_fmt.set_siblingstatus(False)
-            self.children[i].display(nxt_fmt, i)
-
-    def formatted_str(self, fmt_info):
-        s = fmt_info.add_header(self.boxtype)
-        return s + fmt_info.add_attr("size", self.size)
-
     def get_child_count(self):
         return len(self.children)
 
@@ -63,8 +52,11 @@ class Box(object):
             if child.boxtype == boxtype:
                 return child
 
+    def generate_fields(self):
+        yield ("size", self.size)
+
     def __str__(self):
-        return "%s:%d" %(self.boxtype, self.size)
+        return "%s (%d bytes)" %(self.boxtype, self.size)
 
 
     @staticmethod
@@ -95,18 +87,6 @@ class Box(object):
         return box
 
 
-def getboxlist(buf, parent=None):
-    boxes = []
-    try:
-        while buf.hasmore():
-            box = Box.getnextbox(buf, parent)
-            boxes.append(box)
-    except:
-        import traceback
-        print traceback.format_exc()
-    return boxes
-
-
 class FullBox(Box):
     def __init__(self, buf, parent=None):
         self.parent = parent
@@ -118,10 +98,10 @@ class FullBox(Box):
         self.flags = buf.readint(3)
         self.consumed_bytes += 4
 
-    def formatted_str(self, fmt_info):
-        s = super(FullBox, self).formatted_str(fmt_info)
-        s += fmt_info.add_attr("version", self.version)
-        return s + fmt_info.add_attr("flags", "0x%06X" %(self.flags))
+    def generate_fields(self):
+        super(FullBox, self).generate_fields()
+        yield ("version", self.version)
+        yield ("flags", "0x%06X" %self.flags)
 
 
 class FileType(Box):
@@ -139,11 +119,11 @@ class FileType(Box):
             self.brands.append(buf.readstr(4))
             self.consumed_bytes += 4
 
-    def formatted_str(self, fmt_info):
-        s = super(FileType, self).formatted_str(fmt_info)
-        s += fmt_info.add_attr("major brand", self.major_brand)
-        s += fmt_info.add_attr("minor version", self.minor_version)
-        return s + fmt_info.add_attr("brands", ','.join(self.brands))
+    def generate_fields(self):
+        super(FileType, self).generate_fields()
+        yield ("major brand", self.major_brand)
+        yield ("minor version", self.minor_version)
+        yield ("brands", ','.join(self.brands))
 
     def __str__(self):
         return super(FileType, self).__str__() + " %s %d with %d brands %s" %(
