@@ -134,7 +134,7 @@ class HandlerBox(box.FullBox):
             c = buf.readbyte()
             if not c:
                 break
-            name += c
+            name += chr(c)
         self.name = name
 
     def generate_fields(self):
