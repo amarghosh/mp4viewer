@@ -27,8 +27,10 @@ def get_box_node(box):
     for field in box.generate_fields():
         if isinstance(field, Box):
             add_box(node, field)
+        elif type(field) is not tuple:
+            raise Exception("Expected a tuple, got a %s" %type(field));
         else:
-            node.add_attr(field[0], field[1])
+            node.add_attr(field[0], field[1], field[2] if len(field) == 3 else None)
     return node
 
 # Using python reflection to get the list of properties from boxes.

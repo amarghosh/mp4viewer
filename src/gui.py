@@ -22,26 +22,29 @@ class GtkRenderer(object):
     def populate(self, datanode, parent=None):
         treenode = self.treestore.append(parent, [datanode.name])
         for attr in datanode.attrs:
-            self.treestore.append(treenode, ["%s: %s" %(attr.name, attr.value)])
+            self.treestore.append(treenode, ["%s: %s" %(
+                attr.name, attr.display_value if attr.display_value else attr.value)])
         for child in datanode.children:
             self.populate(child, treenode)
 
     def render(self, data):
-        treestore = gtk.TreeStore(str)
-        self.treestore = treestore
-        for child in data.children:
-            self.populate(child)
-        treeview = gtk.TreeView(treestore)
+        self.treestore = gtk.TreeStore(str)
+        self.treeview = gtk.TreeView(self.treestore)
+
         col = gtk.TreeViewColumn(data.name)
-        treeview.append_column(col)
+        self.treeview.append_column(col)
         cell = gtk.CellRendererText()
         col.pack_start(cell, True)
         col.add_attribute(cell, 'text', 0)
+
+        for child in data.children:
+            self.populate(child)
+
         sw = gtk.ScrolledWindow()
         sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        sw.add(treeview)
+        sw.add(self.treeview)
         self.window.add(sw)
-        treeview.expand_all()
+        self.treeview.expand_all()
         self.window.show_all()
         gtk.main()
 

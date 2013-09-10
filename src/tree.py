@@ -1,11 +1,11 @@
 
 class Attr(object):
-    def __init__(self, name, value, converted_value=None):
+    def __init__(self, name, value, display_value=None):
         if type(name) is not str:
             raise Exception("name should be string")
         self.name = name
         self.value = value
-        self.converted_value = converted_value
+        self.display_value = display_value
 
 class Tree(object):
     def __init__(self, name):
