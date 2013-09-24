@@ -4,6 +4,11 @@ import sys
 # Set container flag for pure containers. Boxes with data and children should be
 # handled in their own subclass
 class Box(object):
+    container_boxes = [
+        'moov', 'trak', 'edts', 'mdia', 'minf', 'dinf', 'stbl', 'mvex',
+        'moof', 'traf', 'mfra', 'skip', 'meta', 'ipro', 'sinf'
+    ]
+
     def __init__(self, buf, parent=None, container = False):
         self.parent = parent
         self.parse(buf)
@@ -57,34 +62,27 @@ class Box(object):
     def __str__(self):
         return "%s (%d bytes)" %(self.boxtype, self.size)
 
-
     @staticmethod
     def getnextbox(buf, parent=None):
         import movie
+        boxmap = {
+            'ftyp' : FileType,
+            'mvhd' : movie.MovieHeader,
+            'tkhd' : movie.TrackHeader,
+            'mdhd' : movie.MediaHeader,
+            'hdlr' : movie.HandlerBox,
+            'stsd' : movie.SampleDescription,
+            'dref' : movie.DataReferenceBox,
+        }
         fourcc = buf.peekstr(4, 4)
-        if fourcc == 'ftyp':
-            box = FileType(buf, parent)
-        elif fourcc == 'mvhd':
-            box = movie.MovieHeader(buf, parent)
-        elif fourcc == 'tkhd':
-            box = movie.TrackHeader(buf, parent)
-        elif fourcc == 'mdhd':
-            box = movie.MediaHeader(buf, parent)
-        elif fourcc == 'hdlr':
-            box = movie.HandlerBox(buf, parent)
-        elif fourcc == 'stsd':
-            box = movie.SampleDescription(buf, parent)
-        elif fourcc == 'dref':
-            box = movie.DataReferenceBox(buf, parent)
-        elif fourcc in ['moov', 'trak', 'edts', 'mdia',
-                'minf', 'dinf', 'stbl', 'mvex',
-                'moof', 'traf', 'mfra', 'skip',
-                'meta', 'ipro', 'sinf']:
-            box = Box(buf, parent, True)
+        if fourcc in boxmap:
+            box = boxmap[fourcc](buf, parent)
         else:
-            box = Box(buf, parent)
-            #TODO: Handle size zero (box extends till EOF).
-            buf.skipbytes(box.size - box.consumed_bytes)
+            container = fourcc in Box.container_boxes
+            box = Box(buf, parent, container)
+            if not container:
+                #TODO: Handle size zero (box extends till EOF).
+                buf.skipbytes(box.size - box.consumed_bytes)
         return box
 
 
