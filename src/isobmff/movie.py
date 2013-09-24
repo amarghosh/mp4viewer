@@ -3,10 +3,6 @@ import sys
 import box
 
 class MovieHeader(box.FullBox):
-    def __init__(self, buf, parent=None):
-        self.parent = parent
-        self.parse(buf)
-
     def parse(self, buf):
         super(MovieHeader, self).parse(buf)
         if self.version == 1:
@@ -43,10 +39,6 @@ class MovieHeader(box.FullBox):
 
 
 class TrackHeader(box.FullBox):
-    def __init__(self, buf, parent=None):
-        self.parent = parent
-        self.parse(buf)
-
     def parse(self, buf):
         super(TrackHeader, self).parse(buf)
         if self.version == 1:
@@ -89,10 +81,6 @@ class TrackHeader(box.FullBox):
 
 
 class MediaHeader(box.FullBox):
-    def __init__(self, buf, parent=None):
-        self.parent = parent
-        self.parse(buf)
-
     def parse(self, buf):
         super(MediaHeader, self).parse(buf)
         if self.version == 1:
@@ -121,10 +109,6 @@ class MediaHeader(box.FullBox):
 
 
 class HandlerBox(box.FullBox):
-    def __init__(self, buf, parent=None):
-        self.parent = parent
-        self.parse(buf)
-
     def parse(self, buf):
         super(HandlerBox, self).parse(buf)
         buf.skipbytes(4)
@@ -141,10 +125,6 @@ class HandlerBox(box.FullBox):
 
 
 class SampleEntry(box.Box):
-    def __init__(self, buf, parent=None):
-        self.parent = parent
-        self.parse(buf)
-
     def parse(self, buf):
         super(SampleEntry, self).parse(buf)
         buf.skipbytes(6)
@@ -158,17 +138,11 @@ class SampleEntry(box.Box):
 
 
 class HintSampleEntry(SampleEntry):
-    def __init__(self, buf, parent=None):
-        self.parent = parent
-        self.parse(buf)
+    def parse(self, buf):
         buf.skipbytes(self.size - self.consumed_bytes)
 
 
 class VisualSampleEntry(SampleEntry):
-    def __init__(self, buf, parent=None):
-        self.parent = parent
-        self.parse(buf)
-
     def parse(self, buf):
         super(VisualSampleEntry, self).parse(buf)
         buf.skipbytes(2 + 2 + 3 * 4)
@@ -196,10 +170,6 @@ class VisualSampleEntry(SampleEntry):
         yield ("depth", self.depth)
 
 class AudioSampleEntry(SampleEntry):
-    def __init__(self, buf, parent=None):
-        self.parent = parent
-        self.parse(buf)
-
     def parse(self, buf):
         super(AudioSampleEntry, self).parse(buf)
         buf.skipbytes(8)
@@ -216,10 +186,6 @@ class AudioSampleEntry(SampleEntry):
 
 
 class SampleDescription(box.FullBox):
-    def __init__(self, buf, parent=None):
-        self.parent = parent
-        self.parse(buf)
-
     def parse(self, buf):
         super(SampleDescription, self).parse(buf)
         media = self.find_parent('mdia')
@@ -248,10 +214,6 @@ class SampleDescription(box.FullBox):
 
 
 class DataEntryUrnBox(box.FullBox):
-    def __init__(self, buf, parent=None):
-        self.parent = parent
-        self.parse(buf)
-
     def parse(self, buf):
         super(DataEntryUrnBox, self).parse(buf)
         self.name = buf.read_cstring()[0]
@@ -265,10 +227,6 @@ class DataEntryUrnBox(box.FullBox):
 
 
 class DataEntryUrlBox(box.FullBox):
-    def __init__(self, buf, parent=None):
-        self.parent = parent
-        self.parse(buf)
-
     def parse(self, buf):
         super(DataEntryUrlBox, self).parse(buf)
         self.location = buf.read_cstring(self.size - self.consumed_bytes)[0]
@@ -280,10 +238,6 @@ class DataEntryUrlBox(box.FullBox):
 
 
 class DataReferenceBox(box.FullBox):
-    def __init__(self, buf, parent=None):
-        self.parent = parent
-        self.parse(buf)
-
     def parse(self, buf):
         super(DataReferenceBox, self).parse(buf)
         self.entry_count = buf.readint32()

@@ -6,9 +6,11 @@ import sys
 class Box(object):
     def __init__(self, buf, parent=None, container = False):
         self.parent = parent
-        self.parse(buf, container)
+        self.parse(buf)
+        if container:
+            self.parse_children(buf)
 
-    def parse(self, buf, container = False):
+    def parse(self, buf):
         islarge = False
         size = buf.readint32()
         boxtype = buf.readstr(4)
@@ -27,9 +29,6 @@ class Box(object):
         if boxtype == 'uuid':
             buf.skipbytes(16)
             self.consumed_bytes += 16
-
-        if container:
-            self.parse_children(buf)
 
     def parse_children(self, buf):
         while self.consumed_bytes < self.size:
@@ -61,22 +60,22 @@ class Box(object):
 
     @staticmethod
     def getnextbox(buf, parent=None):
-        from movie import *
+        import movie
         fourcc = buf.peekstr(4, 4)
         if fourcc == 'ftyp':
             box = FileType(buf, parent)
         elif fourcc == 'mvhd':
-            box = MovieHeader(buf, parent)
+            box = movie.MovieHeader(buf, parent)
         elif fourcc == 'tkhd':
-            box = TrackHeader(buf, parent)
+            box = movie.TrackHeader(buf, parent)
         elif fourcc == 'mdhd':
-            box = MediaHeader(buf, parent)
+            box = movie.MediaHeader(buf, parent)
         elif fourcc == 'hdlr':
-            box = HandlerBox(buf, parent)
+            box = movie.HandlerBox(buf, parent)
         elif fourcc == 'stsd':
-            box = SampleDescription(buf, parent)
+            box = movie.SampleDescription(buf, parent)
         elif fourcc == 'dref':
-            box = DataReferenceBox(buf, parent)
+            box = movie.DataReferenceBox(buf, parent)
         elif fourcc in ['moov', 'trak', 'edts', 'mdia',
                 'minf', 'dinf', 'stbl', 'mvex',
                 'moof', 'traf', 'mfra', 'skip',
@@ -90,10 +89,6 @@ class Box(object):
 
 
 class FullBox(Box):
-    def __init__(self, buf, parent=None):
-        self.parent = parent
-        self.parse(buf)
-
     def parse(self, buf):
         super(FullBox, self).parse(buf)
         self.version = buf.readbyte()
@@ -108,10 +103,6 @@ class FullBox(Box):
 
 
 class FileType(Box):
-    def __init__(self, buf, parent=None):
-        self.parent = parent
-        self.parse(buf)
-
     def parse(self, buf):
         super(FileType, self).parse(buf)
         self.major_brand = buf.readstr(4)
