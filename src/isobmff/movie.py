@@ -246,3 +246,60 @@ class SampleDescription(box.FullBox):
         for entry in self.entries:
             yield entry
 
+
+class DataEntryUrnBox(box.FullBox):
+    def __init__(self, buf, parent=None):
+        self.parent = parent
+        self.parse(buf)
+
+    def parse(self, buf):
+        super(DataEntryUrnBox, self).parse(buf)
+        self.name = buf.read_cstring()[0]
+        self.location = buf.read_cstring()[0]
+
+    def generate_fields(self):
+        for x in super(DataEntryUrnBox, self).generate_fields():
+            yield x
+        yield ("name", self.name)
+        yield ("location", self.location)
+
+
+class DataEntryUrlBox(box.FullBox):
+    def __init__(self, buf, parent=None):
+        self.parent = parent
+        self.parse(buf)
+
+    def parse(self, buf):
+        super(DataEntryUrlBox, self).parse(buf)
+        self.location = buf.read_cstring(self.size - self.consumed_bytes)[0]
+
+    def generate_fields(self):
+        for x in super(DataEntryUrlBox, self).generate_fields():
+            yield x
+        yield ("location", self.location)
+
+
+class DataReferenceBox(box.FullBox):
+    def __init__(self, buf, parent=None):
+        self.parent = parent
+        self.parse(buf)
+
+    def parse(self, buf):
+        super(DataReferenceBox, self).parse(buf)
+        self.entry_count = buf.readint32()
+        self.entries = []
+        for i in range(self.entry_count):
+            entry_name = buf.peekstr(4, 4)
+            if entry_name == 'url ':
+                self.entries.append(DataEntryUrlBox(buf, self))
+            elif entry_name == 'urn ':
+                self.entries.append(DataEntryUrnBox(buf, self))
+            else:
+                self.entries.append(box.Box.getnextbox(buf, self))
+
+    def generate_fields(self):
+        for x in super(DataReferenceBox, self).generate_fields():
+            yield x
+        yield ("entry count", self.entry_count)
+        for entry in self.entries:
+            yield entry

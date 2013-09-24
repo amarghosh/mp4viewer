@@ -75,6 +75,8 @@ class Box(object):
             box = HandlerBox(buf, parent)
         elif fourcc == 'stsd':
             box = SampleDescription(buf, parent)
+        elif fourcc == 'dref':
+            box = DataReferenceBox(buf, parent)
         elif fourcc in ['moov', 'trak', 'edts', 'mdia',
                 'minf', 'dinf', 'stbl', 'mvex',
                 'moof', 'traf', 'mfra', 'skip',
