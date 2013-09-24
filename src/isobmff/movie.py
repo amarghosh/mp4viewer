@@ -257,3 +257,22 @@ class DataReferenceBox(box.FullBox):
         yield ("entry count", self.entry_count)
         for entry in self.entries:
             yield entry
+
+
+class TimeToSampleBox(box.FullBox):
+    def parse(self, buf):
+        super(TimeToSampleBox, self).parse(buf)
+        self.entry_count = buf.readint32()
+        self.entries = []
+        for i in range(self.entry_count):
+            count = buf.readint32()
+            delta = buf.readint32()
+            self.entries.append([count, delta])
+
+    def generate_fields(self):
+        for x in super(TimeToSampleBox, self).generate_fields():
+            yield x
+        yield ("entry count", self.entry_count)
+        for entry in self.entries:
+            yield ("sample count", entry[0])
+            yield ("sample delta", entry[1])

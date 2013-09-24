@@ -73,6 +73,7 @@ class Box(object):
             'hdlr' : movie.HandlerBox,
             'stsd' : movie.SampleDescription,
             'dref' : movie.DataReferenceBox,
+            'stts' : movie.TimeToSampleBox,
         }
         fourcc = buf.peekstr(4, 4)
         if fourcc in boxmap:
