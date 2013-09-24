@@ -55,7 +55,7 @@ def get_tree_from_file(path):
 def main():
     parser = argparse.ArgumentParser(
         description='Process iso-bmff file and list the boxes and their contents')
-    parser.add_argument('-f', choices=['stdout','gui'], default='stdout',
+    parser.add_argument('-o', choices=['stdout','gui'], default='stdout',
         help='output format', dest='output_format')
     parser.add_argument('-c', '--color', choices=['on', 'off'], default='on', dest='color',
         help='turn on/off colors in console based output; on by default')
