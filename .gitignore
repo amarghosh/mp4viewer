@@ -1,2 +1,9 @@
 *.mp4
 *.3gp
+*.pyc
+*.zip
+*.7z
+*.tar
+*.tgz
+*.tar.gz
+*.rar
