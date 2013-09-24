@@ -29,7 +29,8 @@ class MovieHeader(box.FullBox):
         self.next_track_id = buf.readint32()
 
     def generate_fields(self):
-        super(MovieHeader, self).generate_fields()
+        for x in super(MovieHeader, self).generate_fields():
+            yield x
         from utils import get_utc_from_seconds_since_1904
         yield ("creation time", self.creation_time, get_utc_from_seconds_since_1904(self.creation_time).ctime())
         yield ("modification time", self.creation_time, get_utc_from_seconds_since_1904(self.modification_time).ctime())
@@ -72,7 +73,8 @@ class TrackHeader(box.FullBox):
         self.height = buf.readint32()
 
     def generate_fields(self):
-        super(TrackHeader, self).generate_fields()
+        for x in super(TrackHeader, self).generate_fields():
+            yield x
         from utils import get_utc_from_seconds_since_1904
         yield ("creation time", self.creation_time, get_utc_from_seconds_since_1904(self.creation_time).ctime())
         yield ("modification time", self.modification_time, get_utc_from_seconds_since_1904(self.modification_time).ctime())
@@ -109,7 +111,8 @@ class MediaHeader(box.FullBox):
     def generate_fields(self):
         from utils import parse_iso639_2_15bit
         from utils import get_utc_from_seconds_since_1904
-        super(MediaHeader, self).generate_fields()
+        for x in super(MediaHeader, self).generate_fields():
+            yield x
         yield ("creation time", self.creation_time, get_utc_from_seconds_since_1904(self.creation_time).ctime())
         yield ("modification time", self.modification_time, get_utc_from_seconds_since_1904(self.modification_time).ctime())
         yield ("timescale", self.timescale)
@@ -138,7 +141,8 @@ class HandlerBox(box.FullBox):
         self.name = name
 
     def generate_fields(self):
-        super(HandlerBox, self).generate_fields()
+        for x in super(HandlerBox, self).generate_fields():
+            yield x
         yield ("handler", self.handler)
         yield ("name", self.name if len(self.name) else '<empty>')
 
@@ -155,7 +159,8 @@ class SampleEntry(box.Box):
         self.consumed_bytes += 8
 
     def generate_fields(self):
-        super(SampleEntry, self).generate_fields()
+        for x in super(SampleEntry, self).generate_fields():
+            yield x
         yield ("data reference index", self.data_ref_index)
 
 
@@ -187,7 +192,8 @@ class VisualSampleEntry(SampleEntry):
         buf.skipbytes(2)
 
     def generate_fields(self):
-        s = super(VisualSampleEntry, self).generate_fields()
+        for x in super(VisualSampleEntry, self).generate_fields():
+            yield x
         yield ("width", self.width)
         yield ("height", self.height)
         yield ("horizontal resolution", "0x%08X" %(self.hori_resolution))
@@ -210,7 +216,8 @@ class AudioSampleEntry(SampleEntry):
         self.sample_rate = buf.readint32()
 
     def generate_fields(self):
-        super(AudioSampleEntry, self).generate_fields()
+        for x in super(AudioSampleEntry, self).generate_fields():
+            yield x
         yield ("sample size", self.sample_size)
         yield ("sample rate", self.sample_rate, "%d, %d" %(self.sample_rate >> 16, self.sample_rate & 0xFFFF))
 
@@ -240,7 +247,8 @@ class SampleDescription(box.FullBox):
             self.entries.append(entry)
 
     def generate_fields(self):
-        super(SampleDescription, self).generate_fields()
+        for x in super(SampleDescription, self).generate_fields():
+            yield x
         yield ("entry count", self.entry_count)
         for entry in self.entries:
             yield entry

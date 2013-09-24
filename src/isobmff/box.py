@@ -99,7 +99,8 @@ class FullBox(Box):
         self.consumed_bytes += 4
 
     def generate_fields(self):
-        super(FullBox, self).generate_fields()
+        for x in super(FullBox, self).generate_fields():
+            yield x
         yield ("version", self.version)
         yield ("flags", "0x%06X" %self.flags)
 
