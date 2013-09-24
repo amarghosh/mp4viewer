@@ -12,10 +12,11 @@ class DataBuffer:
         self.readmore()
 
     def __str__(self):
-        return "<datasource size %d, readptr %d, offset %d>" %(self.buf_size, self.read_ptr, self.stream_offset)
+        return "<datasource size %d, readptr %d, offset %d>" %(
+            self.buf_size, self.read_ptr, self.stream_offset)
 
-    def readmore(self, min = 0):
-        req_bytes = max(min, DataBuffer.CHUNK_SIZE)
+    def readmore(self, minimum = 0):
+        req_bytes = max(minimum, DataBuffer.CHUNK_SIZE)
         data = self.source.read(req_bytes)
         remaining_bytes = self.buf_size - self.read_ptr
         if len(data):
@@ -24,9 +25,14 @@ class DataBuffer:
             self.buf_size = remaining_bytes + len(data)
             self.stream_offset += self.read_ptr
             self.read_ptr = 0
+            if self.buf_size < minimum:
+                raise Exception("Not enough data for %d bytes; read %d, remaining %d",
+                    minimum, len(data), self.buf_size)
         else:
-            # print "Min %d, size %d, pos %d, offset %d" %(min, self.buf_size, self.read_ptr, self.stream_offset)
-            raise Exception("read nothing")
+            # print "Min %d, size %d, pos %d, offset %d" %(
+            #    min, self.buf_size, self.read_ptr, self.stream_offset)
+            raise Exception("Read nothing: req %d, offset %d, read_ptr %d",
+                minimum, self.stream_offset, self.read_ptr)
 
     def hasmore(self):
         import traceback
