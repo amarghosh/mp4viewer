@@ -297,3 +297,19 @@ class SampleToChunkBox(box.FullBox):
             yield ("first chunk", entry[0])
             yield ("samples per chunk", entry[1])
             yield ("sample description index", entry[2])
+
+
+class ChunkOffsetBox(box.FullBox):
+    def parse(self, buf):
+        super(ChunkOffsetBox, self).parse(buf)
+        self.entry_count = buf.readint32()
+        self.entries = []
+        for i in range(self.entry_count):
+            self.entries.append(buf.readint32())
+
+    def generate_fields(self):
+        for x in super(ChunkOffsetBox, self).generate_fields():
+            yield x
+        yield ("entry count", self.entry_count)
+        for entry in self.entries:
+            yield ("chunk offset", entry)
