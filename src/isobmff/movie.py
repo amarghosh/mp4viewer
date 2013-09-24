@@ -267,7 +267,7 @@ class TimeToSampleBox(box.FullBox):
         for i in range(self.entry_count):
             count = buf.readint32()
             delta = buf.readint32()
-            self.entries.append([count, delta])
+            self.entries.append((count, delta))
 
     def generate_fields(self):
         for x in super(TimeToSampleBox, self).generate_fields():
@@ -276,3 +276,24 @@ class TimeToSampleBox(box.FullBox):
         for entry in self.entries:
             yield ("sample count", entry[0])
             yield ("sample delta", entry[1])
+
+
+class SampleToChunkBox(box.FullBox):
+    def parse(self, buf):
+        super(SampleToChunkBox, self).parse(buf)
+        self.entry_count = buf.readint32()
+        self.entries = []
+        for i in range(self.entry_count):
+            first = buf.readint32()
+            samples_per_chunk = buf.readint32()
+            sdix = buf.readint32()
+            self.entries.append((first, samples_per_chunk, sdix))
+
+    def generate_fields(self):
+        for x in super(SampleToChunkBox, self).generate_fields():
+            yield x
+        yield ("entry count", self.entry_count)
+        for entry in self.entries:
+            yield ("first chunk", entry[0])
+            yield ("samples per chunk", entry[1])
+            yield ("sample description index", entry[2])
