@@ -6,7 +6,6 @@ import argparse
 
 from datasource import DataBuffer
 from console import ConsoleRenderer
-from gui import GtkRenderer
 from tree import Tree, Attr
 
 def getboxlist(buf, parent=None):
@@ -70,6 +69,7 @@ def main():
         if args.color == 'off':
             renderer.disable_colors()
     if args.output_format == 'gui':
+        from gui import GtkRenderer
         renderer = GtkRenderer()
 
     renderer.render(root)
