@@ -57,6 +57,20 @@ class DataBuffer:
         self.read_ptr += length
         return s
 
+    def read_cstring(self, max_length=-1):
+        # TODO: Handle utf8
+        s = ''
+        bytes_read = 0
+        while self.hasmore():
+            if bytes_read == max_length:
+                break
+            c = self.readbyte()
+            bytes_read += 1
+            if not c:
+                break
+            s += chr(c)
+        return s, bytes_read
+
     def peekint(self, bytecount):
         self.checkbuffer(bytecount)
         v = 0

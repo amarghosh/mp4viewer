@@ -131,14 +131,7 @@ class HandlerBox(box.FullBox):
         self.handler = buf.readstr(4)
         buf.skipbytes(12)
         self.consumed_bytes += 20
-        remaining = self.size - self.consumed_bytes
-        name = ''
-        for i in range(remaining):
-            c = buf.readbyte()
-            if not c:
-                break
-            name += chr(c)
-        self.name = name
+        self.name = buf.read_cstring(self.size - self.consumed_bytes)[0]
 
     def generate_fields(self):
         for x in super(HandlerBox, self).generate_fields():
