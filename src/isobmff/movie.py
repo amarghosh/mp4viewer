@@ -303,9 +303,7 @@ class ChunkOffsetBox(box.FullBox):
     def parse(self, buf):
         super(ChunkOffsetBox, self).parse(buf)
         self.entry_count = buf.readint32()
-        self.entries = []
-        for i in range(self.entry_count):
-            self.entries.append(buf.readint32())
+        self.entries = [buf.readint32() for i in range(self.entry_count)]
 
     def generate_fields(self):
         for x in super(ChunkOffsetBox, self).generate_fields():
@@ -318,9 +316,7 @@ class SyncSampleBox(box.FullBox):
     def parse(self, buf):
         super(SyncSampleBox, self).parse(buf)
         self.entry_count = buf.readint32()
-        self.entries = []
-        for i in range(self.entry_count):
-            self.entries.append(buf.readint32())
+        self.entries = [buf.readint32() for i in range(self.entry_count)]
 
     def generate_fields(self):
         for x in super(SyncSampleBox, self).generate_fields():
@@ -334,10 +330,10 @@ class SampleSizeBox(box.FullBox):
         super(SampleSizeBox, self).parse(buf)
         self.sample_size = buf.readint32()
         self.sample_count = buf.readint32()
-        self.entries = []
         if self.sample_size == 0:
-            for i in range(self.sample_count):
-                self.entries.append(buf.readint32())
+            self.entries = [buf.readint32() for i in range(self.sample_count)]
+        else:
+            self.entries = []
 
     def generate_fields(self):
         for x in super(SampleSizeBox, self).generate_fields():
