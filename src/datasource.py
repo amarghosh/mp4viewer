@@ -4,6 +4,7 @@ import os
 class DataBuffer:
     CHUNK_SIZE = 50
     def __init__(self, stream):
+        self.bit_position = 0
         self.stream_offset = 0
         self.buf_size = 0
         self.read_ptr = 0
@@ -56,6 +57,8 @@ class DataBuffer:
 
     def peekstr(self, length, offset = 0):
         self.checkbuffer(length + offset)
+        if self.bit_position:
+            raise Exception("Not aligned: %d" %self.bit_position)
         return str(self.data[self.read_ptr + offset:self.read_ptr + offset + length])
 
     def readstr(self, length):
@@ -64,6 +67,8 @@ class DataBuffer:
         return s
 
     def read_cstring(self, max_length=-1):
+        if self.bit_position:
+            raise Exception("Not aligned: %d" %self.bit_position)
         # TODO: Handle utf8
         s = ''
         bytes_read = 0
@@ -79,10 +84,43 @@ class DataBuffer:
 
     def peekint(self, bytecount):
         self.checkbuffer(bytecount)
+        if self.bit_position:
+            raise Exception("Not aligned: %d" %self.bit_position)
         v = 0
         for i in range(0, bytecount):
             v = v << 8 | ord(self.data[self.read_ptr + i])
         return v
+
+    def peekbits(self, bitcount):
+        bytes_req = (bitcount + self.bit_position) / 8
+        bytes_req += 1 if (bitcount + self.bit_position) % 8 else 0
+        self.checkbuffer(bytes_req)
+        if bitcount > 32:
+            raise Exception("%d bits?!! Use readint64() and do your own bit manipulations!" %(bitcount))
+        if not (0 <= self.bit_position < 8):
+            raise Exception("bit_position %d" %self.bit_position)
+        byte_offset = 0
+        bits_read = 0
+        result = 0
+        while bits_read != bitcount:
+            result <<= 8
+            result |= ord(self.data[self.read_ptr + byte_offset])
+            byte_offset += 1
+            if bits_read == 0 and self.bit_position != 0:
+                result &= (1 << (8 - self.bit_position)) - 1
+                bits_read += 8 - self.bit_position
+            else:
+                bits_read += 8
+            if bits_read > bitcount:
+                result >>= bits_read - bitcount
+                bits_read = bitcount
+        return result
+
+    def readbits(self, bitcount):
+        res = self.peekbits(bitcount)
+        self.read_ptr += (bitcount + self.bit_position) / 8
+        self.bit_position = (self.bit_position + bitcount) % 8
+        return res
 
     def readint(self, bytecount):
         v = self.peekint(bytecount)
@@ -102,6 +140,8 @@ class DataBuffer:
         return self.readint(8)
 
     def skipbytes(self, count):
+        if self.bit_position:
+            raise Exception("Not aligned: %d" %self.bit_position)
         if count < 0:
             raise Exception("Negative bytes to skip %d" %(count))
         remaining_bytes = self.buf_size - self.read_ptr
