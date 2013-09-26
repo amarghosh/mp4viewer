@@ -346,3 +346,22 @@ class SampleSizeBox(box.FullBox):
         yield ("sample count", self.sample_count)
         if self.sample_size == 0:
             yield ("sample sizes", self.entries)
+
+
+class CompactSampleSizeBox(box.FullBox):
+    def parse(self, buf):
+        super(CompactSampleSizeBox, self).parse(buf)
+        buf.skipbytes(3)
+        self.field_size = buf.readbyte()
+        self.sample_count = buf.readint32()
+        self.entries = [buf.readbits(self.field_size) for i in range(self.sample_count)]
+        # skip padding bits
+        if self.field_size == 4 and self.sample_count % 2 != 0:
+            buf.readbits(4)
+
+    def generate_fields(self):
+        for x in super(SampleSizeBox, self).generate_fields():
+            yield x
+        yield ("field size", self.sample_size)
+        yield ("sample count", self.sample_count)
+        yield ("entries", self.entries)
