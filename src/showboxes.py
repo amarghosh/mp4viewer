@@ -41,7 +41,7 @@ def add_box(parent, box):
 
 def get_tree_from_file(path):
     try:
-        fd = open(path, 'r')
+        fd = open(path, 'rb')
     except:
         raise "Invalid file name %s" %(path)
     boxes = getboxlist(DataBuffer(fd))
