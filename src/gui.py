@@ -3,7 +3,7 @@
 import pygtk
 pygtk.require('2.0')
 import gtk
-
+import xml.etree.ElementTree as ET
 
 class GtkRenderer(object):
     def __init__(self):
@@ -19,11 +19,23 @@ class GtkRenderer(object):
     def on_destroy(self, widget, data=None):
         gtk.main_quit()
 
+    def format_node(self, name, value, istitle=False):
+        root = ET.Element('markup')
+        color = 'red' if istitle else 'blue'
+        child = ET.SubElement(root, 'span', {'foreground' : color})
+        child.text = name
+        child = ET.SubElement(root, 'span', {'foreground' : 'black'})
+        child.text = ": %s" %(value)
+        return ET.tostring(root)
+
     def populate(self, datanode, parent=None):
-        treenode = self.treestore.append(parent, [datanode.name])
+        treenode = self.treestore.append(parent, [
+            self.format_node(datanode.name, datanode.name, True)
+        ])
         for attr in datanode.attrs:
-            self.treestore.append(treenode, ["%s: %s" %(
-                attr.name, attr.display_value if attr.display_value else attr.value)])
+            self.treestore.append(treenode, [self.format_node(
+                attr.name, attr.display_value if attr.display_value else attr.value
+            )])
         for child in datanode.children:
             self.populate(child, treenode)
 
@@ -35,7 +47,7 @@ class GtkRenderer(object):
         self.treeview.append_column(col)
         cell = gtk.CellRendererText()
         col.pack_start(cell, True)
-        col.add_attribute(cell, 'text', 0)
+        col.add_attribute(cell, 'markup', 0)
 
         for child in data.children:
             self.populate(child)
