@@ -105,6 +105,7 @@ class Box(object):
             'stco' : movie.ChunkOffsetBox,
             'stss' : movie.SyncSampleBox,
             'stsz' : movie.SampleSizeBox,
+            'stz2' : movie.CompactSampleSizeBox,
         }
         fourcc = buf.peekstr(4, 4)
         if fourcc in boxmap:
