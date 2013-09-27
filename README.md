@@ -16,6 +16,10 @@ Usage: cd into `src` folder and run
       -c {on,off}           Turn on/off colors in stdout; on by default.
       -h, --help            Help!
 
+Screenshots:
+![shell output](http://3.bp.blogspot.com/-APb-4LsE9LM/UkUoome4U4I/AAAAAAAADFk/ZkTpd7JkF24/s1600/mp4viewer_shell.png)
+![window with gtk treeview](http://2.bp.blogspot.com/-4Uu3eMfMPCQ/UkUpUrfTlKI/AAAAAAAADFs/pxQSh5U81lQ/s1600/mp4viewer_gtk.png)
+
 MP4Viewer uses gtk in graphics mode and requires that pygtk2.0 be installed in the system for viewing results in a window.
 
 For more info, contact the author at amarghosh at gmail dot com
