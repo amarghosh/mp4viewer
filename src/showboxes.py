@@ -61,7 +61,7 @@ def main():
     parser.add_argument('-o', choices=['stdout','gui'], default='stdout',
         help='output format', dest='output_format')
     parser.add_argument('-e', '--expand-arrays', action='store_false',
-        help='output format', dest='truncate')
+        help='do not truncate long arrays', dest='truncate')
     parser.add_argument('-c', '--color', choices=['on', 'off'], default='on', dest='color',
         help='turn on/off colors in console based output; on by default')
     parser.add_argument('input_file', metavar='iso-base-media-file', help='Path to iso media file')
