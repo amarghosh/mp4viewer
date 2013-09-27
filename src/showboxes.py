@@ -20,31 +20,38 @@ def getboxlist(buf, parent=None):
         print traceback.format_exc()
     return boxes
 
-def get_box_node(box):
+def get_box_node(box, args):
     from isobmff.box import Box
     node = Tree(box.boxtype, Box.getboxdesc(box.boxtype))
     for field in box.generate_fields():
         if isinstance(field, Box):
-            add_box(node, field)
+            add_box(node, field, args)
         elif type(field) is not tuple:
             raise Exception("Expected a tuple, got a %s" %type(field));
         else:
-            node.add_attr(field[0], field[1], field[2] if len(field) == 3 else None)
+            #generate fields yields a tuple of order (name, value, [formatted_value])
+            value = field[1]
+            if args.truncate and type(value) is list and len(value) > 10:
+                value = "[%s ... %s]" %(
+                    ','.join([str(i) for i in value[:3]]),
+                    ','.join([str(i) for i in value[-3:]])
+                )
+            node.add_attr(field[0], value, field[2] if len(field) == 3 else None)
     return node
 
-def add_box(parent, box):
-    box_node = parent.add_child(get_box_node(box))
+def add_box(parent, box, args):
+    box_node = parent.add_child(get_box_node(box, args))
     for child in box.children:
-        add_box(box_node, child)
+        add_box(box_node, child, args)
     return box_node
 
 
-def get_tree_from_file(path):
+def get_tree_from_file(path, args):
     with open(path, 'rb') as fd:
         boxes = getboxlist(DataBuffer(fd))
     root = Tree(os.path.basename(path), "File")
     for box in boxes:
-        add_box(root, box)
+        add_box(root, box, args)
     return root
 
 
@@ -53,12 +60,14 @@ def main():
         description='Process iso-bmff file and list the boxes and their contents')
     parser.add_argument('-o', choices=['stdout','gui'], default='stdout',
         help='output format', dest='output_format')
+    parser.add_argument('-e', '--expand-arrays', action='store_false',
+        help='output format', dest='truncate')
     parser.add_argument('-c', '--color', choices=['on', 'off'], default='on', dest='color',
         help='turn on/off colors in console based output; on by default')
     parser.add_argument('input_file', metavar='iso-base-media-file', help='Path to iso media file')
     args = parser.parse_args()
 
-    root = get_tree_from_file(args.input_file)
+    root = get_tree_from_file(args.input_file, args)
 
     renderer = None
     if args.output_format == 'stdout':
