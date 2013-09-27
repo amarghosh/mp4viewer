@@ -30,7 +30,7 @@ class GtkRenderer(object):
 
     def populate(self, datanode, parent=None):
         treenode = self.treestore.append(parent, [
-            self.format_node(datanode.name, datanode.name, True)
+            self.format_node(datanode.name, datanode.desc, True)
         ])
         for attr in datanode.attrs:
             self.treestore.append(treenode, [self.format_node(

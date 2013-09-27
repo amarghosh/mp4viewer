@@ -22,7 +22,7 @@ def getboxlist(buf, parent=None):
 
 def get_box_node(box):
     from isobmff.box import Box
-    node = Tree(box.boxtype)
+    node = Tree(box.boxtype, Box.getboxdesc(box.boxtype))
     for field in box.generate_fields():
         if isinstance(field, Box):
             add_box(node, field)
@@ -42,7 +42,7 @@ def add_box(parent, box):
 def get_tree_from_file(path):
     with open(path, 'rb') as fd:
         boxes = getboxlist(DataBuffer(fd))
-    root = Tree(os.path.basename(path))
+    root = Tree(os.path.basename(path), "File")
     for box in boxes:
         add_box(root, box)
     return root

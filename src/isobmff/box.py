@@ -4,6 +4,33 @@ import sys
 # Set container flag for pure containers. Boxes with data and children should be
 # handled in their own subclass
 class Box(object):
+    box_names = {
+        'ftyp' : 'File type',
+        'moov' : 'Movie container',
+        'moof' : 'Movie fragment',
+        'mfra' : 'Movie fragment random access',
+        'traf' : 'Track fragment',
+        'trak' : 'Track container',
+        'mdia' : 'Media container',
+        'minf' : 'Media information box',
+        'dinf' : 'Data information box',
+        'mvhd' : 'Movie header',
+        'tkhd' : 'Track header',
+        'mdhd' : 'Media header',
+        'stbl' : 'Sample table',
+        'hdlr' : 'Handler box',
+        'stsd' : 'Sample description',
+        'dref' : 'Data reference box',
+        'stts' : 'Time-to-sample box',
+        'stsc' : 'Sample-to-chunk box',
+        'stco' : 'Chunk offset box',
+        'stss' : 'Sync sample box',
+        'stsz' : 'Sample size box',
+        'stz2' : 'Compact sample size box',
+        'udta' : 'User data',
+        'skip' : 'Skip',
+        'free' : 'Free',
+    }
     container_boxes = [
         'moov', 'trak', 'edts', 'mdia', 'minf', 'dinf', 'stbl', 'mvex',
         'moof', 'traf', 'mfra', 'skip', 'meta', 'ipro', 'sinf'
@@ -89,6 +116,13 @@ class Box(object):
                 #TODO: Handle size zero (box extends till EOF).
                 buf.skipbytes(box.size - box.consumed_bytes)
         return box
+
+    @staticmethod
+    def getboxdesc(name):
+        if name in Box.box_names:
+            return Box.box_names[name]
+        else:
+            return name.upper()
 
 
 class FullBox(Box):

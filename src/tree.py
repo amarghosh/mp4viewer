@@ -8,8 +8,9 @@ class Attr(object):
         self.display_value = display_value
 
 class Tree(object):
-    def __init__(self, name):
+    def __init__(self, name, desc):
         self.name = name
+        self.desc = desc
         self.attrs = []
         self.children = []
 
