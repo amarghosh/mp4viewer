@@ -18,9 +18,7 @@ class MovieHeader(box.FullBox):
         self.rate = buf.readint32()
         self.volume = buf.readint16()
         buf.skipbytes(2 + 8)
-        self.matrix = []
-        for i in range(3):
-            self.matrix.append([buf.readint32() for j in range(3)])
+        self.matrix = [[buf.readint32() for j in range(3)] for i in range(3)]
         buf.skipbytes(24)
         self.next_track_id = buf.readint32()
 
@@ -58,9 +56,7 @@ class TrackHeader(box.FullBox):
         self.altgroup = buf.readint16()
         self.volume = buf.readint16()
         buf.skipbytes(2)
-        self.matrix = []
-        for i in range(3):
-            self.matrix.append([buf.readint32() for j in range(3)])
+        self.matrix = [[buf.readint32() for j in range(3)] for i in range(3)]
         self.width = buf.readint32()
         self.height = buf.readint32()
 
