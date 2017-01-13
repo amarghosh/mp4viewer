@@ -191,9 +191,9 @@ class SampleDescription(box.FullBox):
         self.entries = []
         for i in range(self.entry_count):
             if handler == 'soun':
-                entry = AudioSampleEntry(buf)
+                entry = AudioSampleEntry(buf, container=True)
             elif handler == 'vide':
-                entry = VisualSampleEntry(buf)
+                entry = VisualSampleEntry(buf, container=True)
             elif handler == 'hint':
                 entry = HintSampleEntry(buf)
             else:
