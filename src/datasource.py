@@ -16,6 +16,9 @@ class DataBuffer:
         return "<datasource size %d, readptr %d, offset %d>" %(
             self.buf_size, self.read_ptr, self.stream_offset)
 
+    def current_position(self):
+        return self.stream_offset + self.read_ptr
+
     def readmore(self, minimum = 0):
         req_bytes = max(minimum, DataBuffer.CHUNK_SIZE)
         data = self.source.read(req_bytes)

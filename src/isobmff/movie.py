@@ -153,6 +153,7 @@ class VisualSampleEntry(SampleEntry):
         buf.skipbytes(32 - compressor_name_length - 1)
         self.depth = buf.readint16()
         buf.skipbytes(2)
+        self.has_children = True
 
     def generate_fields(self):
         for x in super(VisualSampleEntry, self).generate_fields():
@@ -173,6 +174,7 @@ class AudioSampleEntry(SampleEntry):
         self.sample_size = buf.readint16()
         buf.skipbytes(4)
         self.sample_rate = buf.readint32()
+        self.has_children = True
 
     def generate_fields(self):
         for x in super(AudioSampleEntry, self).generate_fields():

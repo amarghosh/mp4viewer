@@ -36,10 +36,14 @@ class Box(object):
         'moof', 'traf', 'mfra', 'skip', 'meta', 'ipro', 'sinf'
     ]
 
-    def __init__(self, buf, parent=None, container = False):
+    def __init__(self, buf, parent=None, is_container = False):
         self.parent = parent
+        pos = buf.current_position()
+        self.has_children = is_container
+        # has_children can be updated by parse() of the derived class
         self.parse(buf)
-        if container:
+        self.consumed_bytes = buf.current_position() - pos
+        if self.has_children:
             self.parse_children(buf)
 
     def parse(self, buf):
