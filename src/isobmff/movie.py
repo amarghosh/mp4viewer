@@ -166,6 +166,7 @@ class VisualSampleEntry(SampleEntry):
         yield ("compressor name", self.compressor_name)
         yield ("depth", self.depth)
 
+
 class AudioSampleEntry(SampleEntry):
     def parse(self, buf):
         super(AudioSampleEntry, self).parse(buf)
@@ -190,25 +191,24 @@ class SampleDescription(box.FullBox):
         hdlr = media.find_child('hdlr') if media else None
         handler = hdlr.handler if hdlr else None
         self.entry_count = buf.readint32()
-        self.entries = []
         for i in range(self.entry_count):
             if handler == 'soun':
-                entry = AudioSampleEntry(buf)
+                self.children.append(AudioSampleEntry(buf))
             elif handler == 'vide':
-                entry = VisualSampleEntry(buf)
+                self.children.append(VisualSampleEntry(buf))
             elif handler == 'hint':
-                entry = HintSampleEntry(buf)
+                self.children.append(HintSampleEntry(buf))
             else:
                 entry = box.Box(buf)
+                self.children.append(entry)
                 buf.skipbytes(entry.size - entry.consumed_bytes)
-            self.entries.append(entry)
+        if len(self.children) != 0:
+            self.has_children = True
 
     def generate_fields(self):
         for x in super(SampleDescription, self).generate_fields():
             yield x
         yield ("entry count", self.entry_count)
-        for entry in self.entries:
-            yield entry
 
 
 class DataEntryUrnBox(box.FullBox):
@@ -239,22 +239,14 @@ class DataReferenceBox(box.FullBox):
     def parse(self, buf):
         super(DataReferenceBox, self).parse(buf)
         self.entry_count = buf.readint32()
-        self.entries = []
+        self.has_children = True
         for i in range(self.entry_count):
-            entry_name = buf.peekstr(4, 4)
-            if entry_name == 'url ':
-                self.entries.append(DataEntryUrlBox(buf, self))
-            elif entry_name == 'urn ':
-                self.entries.append(DataEntryUrnBox(buf, self))
-            else:
-                self.entries.append(box.Box.getnextbox(buf, self))
+            self.children.append(box.Box.getnextbox(buf, self))
 
     def generate_fields(self):
         for x in super(DataReferenceBox, self).generate_fields():
             yield x
         yield ("entry count", self.entry_count)
-        for entry in self.entries:
-            yield entry
 
 
 class TimeToSampleBox(box.FullBox):
@@ -359,3 +351,20 @@ class CompactSampleSizeBox(box.FullBox):
         yield ("field size", self.sample_size)
         yield ("sample count", self.sample_count)
         yield ("entries", self.entries)
+
+boxmap = {
+    'mvhd' : MovieHeader,
+    'tkhd' : TrackHeader,
+    'mdhd' : MediaHeader,
+    'hdlr' : HandlerBox,
+    'stsd' : SampleDescription,
+    'dref' : DataReferenceBox,
+    'stts' : TimeToSampleBox,
+    'stsc' : SampleToChunkBox,
+    'stco' : ChunkOffsetBox,
+    'stss' : SyncSampleBox,
+    'stsz' : SampleSizeBox,
+    'stz2' : CompactSampleSizeBox,
+    'url ' : DataEntryUrlBox,
+    'urn ' : DataEntryUrnBox,
+    }
