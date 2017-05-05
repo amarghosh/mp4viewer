@@ -122,12 +122,12 @@ class Box(object):
     @staticmethod
     def getnextbox(buf, parent=None):
         import movie
-        #import fragment
+        import fragment
         boxmap = {
             'ftyp' : FileType,
         }
         boxmap.update(movie.boxmap)
-        #boxmap.update(fragment.boxmap)
+        boxmap.update(fragment.boxmap)
         fourcc = buf.peekstr(4, 4)
         if fourcc in boxmap:
             box = boxmap[fourcc](buf, parent)
