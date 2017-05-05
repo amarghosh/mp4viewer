@@ -123,6 +123,7 @@ class SoundMediaHeader(box.FullBox):
     def parse(self, buf):
         super(SoundMediaHeader, self).parse(buf)
         self.balance = buf.readint16()
+        buf.skipbytes(2)
     
     def generate_fields(self):
         for x in super(SoundMediaHeader, self).generate_fields():
