@@ -56,6 +56,11 @@ class Box(object):
         'schi' : 'Scheme information box',
         'sinf' : 'Protection scheme information box',
         'frma' : 'Original format box',
+        #flv specific boxes
+        'afra' : 'Adobe fragment random access box',
+        'abst' : 'Adobe bootstrap info box',
+        'asrt' : 'Adobe segment run table box',
+        'afrt' : 'Adobe fragment run table box',
     }
     container_boxes = [
         'moov', 'trak', 'edts', 'mdia', 'minf', 'dinf', 'stbl', 'mvex',
@@ -123,11 +128,13 @@ class Box(object):
     def getnextbox(buf, parent=None):
         import movie
         import fragment
+        import flv
         boxmap = {
             'ftyp' : FileType,
         }
         boxmap.update(movie.boxmap)
         boxmap.update(fragment.boxmap)
+        boxmap.update(flv.boxmap)
         fourcc = buf.peekstr(4, 4)
         if fourcc in boxmap:
             box = boxmap[fourcc](buf, parent)

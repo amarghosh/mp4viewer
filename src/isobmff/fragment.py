@@ -101,7 +101,7 @@ class TrackFragmentRun(box.FullBox):
                 if len(val):
                     val += ", "
                 val += "compositional time offset=%d" %(s[3])
-            yield ('sample %d' % (i), val)
+            yield ('  Sample %d' % (i), val)
  
 
 class SampleAuxInfoSizes(box.FullBox):
@@ -110,12 +110,12 @@ class SampleAuxInfoSizes(box.FullBox):
         if self.flags & 1:
             self.aux_info_type = buf.readint32()
             self.aux_info_type_parameter = buf.readint32()
-        self.default_sample_info_size = int(buf.readbyte())
+        self.default_sample_info_size = buf.readbyte()
         self.sample_count = buf.readint32()
         self.samples = []
         if self.default_sample_info_size == 0:
             for i in range(self.sample_count):
-                self.samples.append(int(buf.readbyte()))
+                self.samples.append(buf.readbyte())
 
     def generate_fields(self):
         for x in super(SampleAuxInfoSizes, self).generate_fields():
@@ -127,7 +127,7 @@ class SampleAuxInfoSizes(box.FullBox):
             yield ("Default sample info size", self.default_sample_info_size)
         else:
             for sample in self.samples:
-                yield("sample info size", sample)
+                yield("  Sample info size", sample)
 
 
 class SampleAuxInfoOffsets(box.FullBox):
@@ -153,7 +153,7 @@ class SampleAuxInfoOffsets(box.FullBox):
             yield("Aux info type parameter", self.aux_info_type_parameter)
         yield("Entry Count", self.entry_count)
         for offset in self.offsets:
-            yield("offset", offset)
+            yield("  Offset", offset)
 
 
 class TrackFragmentDecodeTime(box.FullBox):
@@ -217,8 +217,8 @@ class SegmentIndexBox(box.FullBox):
         i = 0
         for ref in self.references:
             i += 1
-            yield('Reference %d' %(i),
-                    'type: %d, size: %d, duration: %d, starts with SAP: %r, SAP type %d, SAP delta time %d' %ref)
+            yield('  Reference %d' %(i),
+                    'type=%d, size=%d, duration=%d, starts with SAP=%r, SAP type=%d, SAP delta time=%d' %ref)
 
 boxmap = {
         #'mfra' : MovieFragmentRandomAccessBox
