@@ -61,17 +61,17 @@ class AdobeBootstrap(box.FullBox):
         self.timescale = buf.readint32()
         self.current_media_time = buf.readint64()
         self.smpte_time_code_offset = buf.readint64()
-        self.movie_id = buf.read_cstring()
+        self.movie_id = buf.read_cstring()[0]
         self.server_entry_count = buf.readbyte()
         self.server_entries = []
         for i in range(self.server_entry_count):
-            self.server_entries.append(buf.read_cstring())
+            self.server_entries.append(buf.read_cstring()[0])
         self.quality_entry_count = buf.readbyte()
         self.quality_entries = []
         for i in range(self.quality_entry_count):
-            self.quality_entries.append(buf.read_cstring())
-        self.drmdata = buf.read_cstring()
-        self.metadata = buf.read_cstring()
+            self.quality_entries.append(buf.read_cstring()[0])
+        self.drmdata = buf.read_cstring()[0]
+        self.metadata = buf.read_cstring()[0]
         self.segment_run_table_entry_count = buf.readbyte()
         self.segment_run_table_entries = []
         for i in range(self.segment_run_table_entry_count):
@@ -90,15 +90,15 @@ class AdobeBootstrap(box.FullBox):
         yield ("Timescale", self.timescale)
         yield ("Current media time", self.current_media_time)
         yield ("SMPTE time code", self.smpte_time_code_offset)
-        yield ("Movie ID", self.movie_id)
+        yield ("Movie ID", self.movie_id if len(self.movie_id) else '<empty>')
         yield ("Server entry count", self.server_entry_count)
         for s in self.server_entries:
-            yield ("Server", s)
+            yield ("Server", s if len(s) else '<empty>')
         yield ("Quality entry count", self.quality_entry_count)
         for q in self.quality_entries:
-            yield ("Quality", q)
-        yield ("DRM data", self.drmdata)
-        yield ("Metadata", self.metadata)
+            yield ("Quality", q if len(q) else '<empty>')
+        yield ("DRM data", self.drmdata if len(self.drmdata) else '<empty>')
+        yield ("Metadata", self.metadata if len(self.metadata) else '<empty>')
         yield ("Segment run table entry count", self.segment_run_table_entry_count)
         for t in self.segment_run_table_entries:
             yield t
@@ -113,7 +113,7 @@ class AdobeSegmentRunTable(box.FullBox):
         self.quality_entry_count = buf.readbyte()
         self.quality_url_modifiers = []
         for i in range(self.quality_entry_count):
-            self.quality_url_modifiers.append(buf.read_cstring())
+            self.quality_url_modifiers.append(buf.read_cstring()[0])
         self.segment_entry_count = buf.readint32()
         self.segment_entries = []
         for i in range(self.segment_entry_count):
@@ -126,7 +126,7 @@ class AdobeSegmentRunTable(box.FullBox):
             yield x
         yield ("Quality entry count", self.quality_entry_count)
         for q in self.quality_url_modifiers:
-            yield ("Quality url modifier", q)
+            yield ("Quality url modifier", q if len(q) else '<empty>')
         yield ("Segment entry count", self.segment_entry_count)
         i = 0
         for e in self.segment_entries:
@@ -141,7 +141,7 @@ class AdobeFragmentRunTable(box.FullBox):
         self.quality_entry_count = buf.readbyte()
         self.quality_url_modifiers = []
         for i in range(self.quality_entry_count):
-            self.quality_url_modifiers.append(buf.read_cstring())
+            self.quality_url_modifiers.append(buf.read_cstring()[0])
         self.fragment_entry_count = buf.readint32()
         self.fragment_entries = []
         for i in range(self.fragment_entry_count):
@@ -159,7 +159,7 @@ class AdobeFragmentRunTable(box.FullBox):
         yield ("Timescale", self.timescale)
         yield ("Quality entry count", self.quality_entry_count)
         for q in self.quality_url_modifiers:
-            yield ("Quality url modifier", q)
+            yield ("Quality url modifier", q if len(q) else '<empty>')
         yield ("Fragment entry count", self.fragment_entry_count)
         i = 0
         for e in self.fragment_entries:
