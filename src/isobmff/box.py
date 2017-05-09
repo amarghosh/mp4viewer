@@ -48,6 +48,8 @@ class Box(object):
         'styp' : 'Segment type',
         'sidx' : 'Segment index',
         'ssix' : 'Subsegment index',
+        'sbgp' : 'Sample to group box',
+        'sgpd' : 'Sample group description box',
         #common encryption boxes
         'tenc' : 'Track encryption box',
         'senc' : 'Sample encryption box',
@@ -129,12 +131,14 @@ class Box(object):
         import movie
         import fragment
         import flv
+        import cenc
         boxmap = {
             'ftyp' : FileType,
         }
         boxmap.update(movie.boxmap)
         boxmap.update(fragment.boxmap)
         boxmap.update(flv.boxmap)
+        boxmap.update(cenc.boxmap)
         fourcc = buf.peekstr(4, 4)
         if fourcc in boxmap:
             box = boxmap[fourcc](buf, parent)

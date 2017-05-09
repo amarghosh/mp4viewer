@@ -50,6 +50,7 @@ class AdobeFragmentRandomAccess(box.FullBox):
                 i += 1
                 yield( "  Global entry %d" %(i), "time=%d, id=%d" %e)
 
+
 class AdobeBootstrap(box.FullBox):
     def parse(self, buf):
         super(AdobeBootstrap, self).parse(buf)
@@ -133,6 +134,7 @@ class AdobeSegmentRunTable(box.FullBox):
             i += 1
             yield ("Entry %d" %(i),
                     "First segment=%d, Fragments per segment=%d" %e)
+
 
 class AdobeFragmentRunTable(box.FullBox):
     def parse(self, buf):

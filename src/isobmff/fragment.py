@@ -220,6 +220,7 @@ class SegmentIndexBox(box.FullBox):
             yield('  Reference %d' %(i),
                     'type=%d, size=%d, duration=%d, starts with SAP=%r, SAP type=%d, SAP delta time=%d' %ref)
 
+
 boxmap = {
         #'mfra' : MovieFragmentRandomAccessBox
         'mfhd' : MovieFragmentHeader,
