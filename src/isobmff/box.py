@@ -5,15 +5,25 @@ import sys
 # handled in their own subclass
 class Box(object):
     box_names = {
+        #iso bmff box types
         'ftyp' : 'File type',
         'moov' : 'Movie container',
         'moof' : 'Movie fragment',
         'mfra' : 'Movie fragment random access',
+        'mfhd' : 'Movie fragment header',
         'traf' : 'Track fragment',
+        'tfhd' : 'Track fragment header',
+        'trun' : 'Track fragment run',
+        'saiz' : 'Sample auxiliary information sizes',
+        'saio' : 'Sample auxiliary information offsets',
+        'tfdt' : 'Track fragment decode time',
         'trak' : 'Track container',
         'mdia' : 'Media container',
         'minf' : 'Media information box',
         'dinf' : 'Data information box',
+        'vmhd' : 'Video media header',
+        'smhd' : 'Sound media header',
+        'hmhd' : 'hint media header',
         'mvhd' : 'Movie header',
         'tkhd' : 'Track header',
         'mdhd' : 'Media header',
@@ -21,19 +31,42 @@ class Box(object):
         'hdlr' : 'Handler box',
         'stsd' : 'Sample description',
         'dref' : 'Data reference box',
+        'url ' : 'Data entry URL box',
         'stts' : 'Time-to-sample box',
         'stsc' : 'Sample-to-chunk box',
         'stco' : 'Chunk offset box',
         'stss' : 'Sync sample box',
         'stsz' : 'Sample size box',
         'stz2' : 'Compact sample size box',
+        'mvex' : 'Movie extends box',
+        'mehd' : 'Movie extends header box',
+        'trex' : 'Track extends defaults',
         'udta' : 'User data',
         'skip' : 'Skip',
         'free' : 'Free',
+        'mdat' : 'Media data container',
+        'styp' : 'Segment type',
+        'sidx' : 'Segment index',
+        'ssix' : 'Subsegment index',
+        'sbgp' : 'Sample to group box',
+        'sgpd' : 'Sample group description box',
+        #common encryption boxes
+        'tenc' : 'Track encryption box',
+        'senc' : 'Sample encryption box',
+        'pssh' : 'Protection system specific header box',
+        'schm' : 'Scheme type box',
+        'schi' : 'Scheme information box',
+        'sinf' : 'Protection scheme information box',
+        'frma' : 'Original format box',
+        #flv specific boxes
+        'afra' : 'Adobe fragment random access box',
+        'abst' : 'Adobe bootstrap info box',
+        'asrt' : 'Adobe segment run table box',
+        'afrt' : 'Adobe fragment run table box',
     }
     container_boxes = [
         'moov', 'trak', 'edts', 'mdia', 'minf', 'dinf', 'stbl', 'mvex',
-        'moof', 'traf', 'mfra', 'skip', 'meta', 'ipro', 'sinf'
+        'moof', 'traf', 'mfra', 'skip', 'meta', 'ipro', 'sinf', 'schi',
     ]
 
     def __init__(self, buf, parent=None, is_container = False):
@@ -96,21 +129,16 @@ class Box(object):
     @staticmethod
     def getnextbox(buf, parent=None):
         import movie
+        import fragment
+        import flv
+        import cenc
         boxmap = {
             'ftyp' : FileType,
-            'mvhd' : movie.MovieHeader,
-            'tkhd' : movie.TrackHeader,
-            'mdhd' : movie.MediaHeader,
-            'hdlr' : movie.HandlerBox,
-            'stsd' : movie.SampleDescription,
-            'dref' : movie.DataReferenceBox,
-            'stts' : movie.TimeToSampleBox,
-            'stsc' : movie.SampleToChunkBox,
-            'stco' : movie.ChunkOffsetBox,
-            'stss' : movie.SyncSampleBox,
-            'stsz' : movie.SampleSizeBox,
-            'stz2' : movie.CompactSampleSizeBox,
         }
+        boxmap.update(movie.boxmap)
+        boxmap.update(fragment.boxmap)
+        boxmap.update(flv.boxmap)
+        boxmap.update(cenc.boxmap)
         fourcc = buf.peekstr(4, 4)
         if fourcc in boxmap:
             box = boxmap[fourcc](buf, parent)

@@ -25,8 +25,12 @@ class ConsoleRenderer(object):
         else:
             data_prefix = prefix + self.indent_unit + self.indent_unit
         for attr in node.attrs:
-            write("%s%s%s%s: %s\n" %(data_prefix, ConsoleRenderer.COLOR_ATTR, attr.name,
-                ConsoleRenderer.ENDCOL, attr.value))
+            if attr.display_value != None:
+                write("%s%s%s%s: %s (%s)\n" %(data_prefix, ConsoleRenderer.COLOR_ATTR, attr.name,
+                    ConsoleRenderer.ENDCOL, attr.value, attr.display_value))
+            else:
+                write("%s%s%s%s: %s\n" %(data_prefix, ConsoleRenderer.COLOR_ATTR, attr.name,
+                    ConsoleRenderer.ENDCOL, attr.value))
         child_indent = prefix + self.indent_unit[:-1] + ConsoleRenderer.VERT
         for i in range(len(node.children)):
             if i + 1 == len(node.children):
