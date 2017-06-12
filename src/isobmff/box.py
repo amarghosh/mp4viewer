@@ -141,6 +141,10 @@ class Box(object):
             if child.boxtype == boxtype:
                 return child
 
+    def basic_info(self):
+        yield ("type", self.boxtype)
+        yield ("size", self.size)
+
     def generate_fields(self):
         yield ("size", self.size)
 
@@ -160,6 +164,7 @@ class Box(object):
         boxmap.update(fragment.boxmap)
         boxmap.update(flv.boxmap)
         boxmap.update(cenc.boxmap)
+
         fourcc = buf.peekstr(4, 4)
         if fourcc in boxmap:
             box = boxmap[fourcc](buf, parent)
