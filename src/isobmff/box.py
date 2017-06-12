@@ -1,6 +1,10 @@
 
 import sys
 
+def string_to_hex(s):
+    x = [ "%02x" %ord(ch) for ch in s]
+    return " ".join(x)
+
 # Set container flag for pure containers. Boxes with data and children should be
 # handled in their own subclass
 class Box(object):
@@ -78,6 +82,11 @@ class Box(object):
         self.consumed_bytes = buf.current_position() - pos
         if self.has_children:
             self.parse_children(buf)
+        if self.consumed_bytes < self.size:
+            print "Skipping tailing bytes: Possible parse error (or unhandled box) in %s: consumed %d, skip %d" %(
+                    self, self.consumed_bytes, self.size - self.consumed_bytes)
+            buf.skipbytes(self.size - self.consumed_bytes)
+            self.consumed_bytes = self.size
 
     def parse(self, buf):
         islarge = False
@@ -100,7 +109,7 @@ class Box(object):
             self.consumed_bytes += 16
 
     def parse_children(self, buf):
-        while self.consumed_bytes < self.size:
+        while self.consumed_bytes + 8 < self.size:
             box = Box.getnextbox(buf, self)
             self.children.append(box)
             self.consumed_bytes += box.size
