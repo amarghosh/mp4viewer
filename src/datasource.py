@@ -1,16 +1,34 @@
 
 import os
 
+class FileSource(object):
+    def __init__(self, f):
+        self.file = f
+        self.size = os.fstat(f.fileno()).st_size
+
+    def read(self, req_bytes):
+        return self.file.read(req_bytes)
+
+    def seek(self, count, pos):
+        return self.file.seek(count, pos)
+
+    def __len__(self):
+        return self.size
+
+
 class DataBuffer:
     CHUNK_SIZE = 50
-    def __init__(self, stream):
+    def __init__(self, source):
+        self.source = source
+        self.reset()
+        self.readmore()
+
+    def reset(self):
         self.bit_position = 0
         self.stream_offset = 0
         self.buf_size = 0
         self.read_ptr = 0
         self.data = ''
-        self.source = stream
-        self.readmore()
 
     def __str__(self):
         return "<datasource size %d, readptr %d, offset %d>" %(
@@ -18,6 +36,9 @@ class DataBuffer:
 
     def current_position(self):
         return self.stream_offset + self.read_ptr
+
+    def remaining_bytes(self):
+        return len(self.source) - (self.stream_offset + self.read_ptr)
 
     def readmore(self, minimum = 0):
         req_bytes = max(minimum, DataBuffer.CHUNK_SIZE)
@@ -157,4 +178,10 @@ class DataBuffer:
             self.stream_offset += self.read_ptr + count
             self.buf_size = 0
             self.read_ptr = 0
+
+    def seekto(self, pos):
+        self.source.seek(pos, os.SEEK_SET)
+        self.reset()
+        self.stream_offset = pos
+        self.readmore()
 

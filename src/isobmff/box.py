@@ -76,6 +76,7 @@ class Box(object):
     def __init__(self, buf, parent=None, is_container = False):
         self.parent = parent
         pos = buf.current_position()
+        self.buffer_offset = pos
         self.has_children = is_container
         # has_children can be updated by parse() of the derived class
         self.parse(buf)
@@ -99,6 +100,12 @@ class Box(object):
             self.consumed_bytes += 8
             islarge = True
 
+        # Basic sanity check
+        if self.parent is not None:
+            if self.parent.consumed_bytes + size > self.parent.size:
+                raise Exception("Size error: parent %d, consumed %d, child says %d" %(
+                    self.parent.size, self.parent.consumed_bytes, size))
+
         self.size = size
         self.boxtype = boxtype
         self.islarge = islarge
@@ -110,9 +117,14 @@ class Box(object):
 
     def parse_children(self, buf):
         while self.consumed_bytes + 8 < self.size:
-            box = Box.getnextbox(buf, self)
-            self.children.append(box)
-            self.consumed_bytes += box.size
+            try:
+                box = Box.getnextbox(buf, self)
+                self.children.append(box)
+                self.consumed_bytes += box.size
+            except Exception as e:
+                print "Error parsing children of %s: %s" %(self, e)
+                buf.seekto(self.buffer_offset + self.size)
+                self.consumed_bytes = self.size
 
     def get_child_count(self):
         return len(self.children)

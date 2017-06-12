@@ -5,6 +5,7 @@ import sys
 import argparse
 
 from datasource import DataBuffer
+from datasource import FileSource
 from console import ConsoleRenderer
 from tree import Tree, Attr
 
@@ -48,7 +49,7 @@ def add_box(parent, box, args):
 
 def get_tree_from_file(path, args):
     with open(path, 'rb') as fd:
-        boxes = getboxlist(DataBuffer(fd))
+        boxes = getboxlist(DataBuffer(FileSource(fd)))
     root = Tree(os.path.basename(path), "File")
     for box in boxes:
         add_box(root, box, args)
