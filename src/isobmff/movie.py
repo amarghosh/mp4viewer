@@ -213,10 +213,9 @@ class VisualSampleEntry(SampleEntry):
 class AudioSampleEntry(SampleEntry):
     def parse(self, buf):
         super(AudioSampleEntry, self).parse(buf)
-        # 14496-12 says first eight bits are reserved
+        # 14496-12 says first eight bits are reserved.
         # Apple QuickTime format (MOV) uses those bytes for version, revision and vendor
-        # The size of this box in QT varies according to the version, so we must parse it
-        # The remaining six bytes are currently ignored
+        # The size of this box in QT varies according to the version, so we need the version
         self.quicktime_version = buf.readint16()
         buf.skipbytes(6)
         self.channel_count = buf.readint16()
@@ -228,8 +227,8 @@ class AudioSampleEntry(SampleEntry):
             self.bytes_per_pkt = buf.readint32()
             self.bytes_per_frame = buf.readint32()
             self.bytes_per_sample = buf.readint32()
-        if self.quicktime_version == 2:
-            buf.skipbytes(20)
+        elif self.quicktime_version == 2:
+            buf.skipbytes(36)
         self.has_children = True
 
     def generate_fields(self):
