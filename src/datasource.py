@@ -35,8 +35,8 @@ class DataBuffer:
         else:
             # print "Min %d, size %d, pos %d, offset %d" %(
             #    min, self.buf_size, self.read_ptr, self.stream_offset)
-            raise Exception("Read nothing: req %d, offset %d, read_ptr %d",
-                minimum, self.stream_offset, self.read_ptr)
+            raise Exception("Read nothing: req %d, offset %d, read_ptr %d" %(
+                minimum, self.stream_offset, self.read_ptr))
 
     def hasmore(self):
         import traceback
