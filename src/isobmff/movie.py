@@ -439,6 +439,45 @@ class TrackExtendsBox(box.FullBox):
         yield ("Default sample size", self.default_sample_size)
         yield ("Default sample flags", self.default_sample_flags)
     
+
+class AvcCBox(box.Box):
+    def parse(self, buf):
+        super(AvcCBox, self).parse(buf)
+        self.configuration_level = buf.readbyte()
+        self.profile = buf.readbyte()
+        self.profile_compatibility = buf.readbyte()
+        self.level = buf.readbyte()
+        buf.readbits(6)
+        self.len_minus_1 = buf.readbits(2)
+        buf.readbits(3)
+
+        self.sps = []
+        num_of_sps = buf.readbits(5)
+        for x in xrange(num_of_sps):
+            sps_len = buf.readint16()
+            self.sps.append(buf.readstr(sps_len))
+
+        self.pps = []
+        num_of_pps = buf.readbyte()
+        for x in xrange(num_of_pps):
+            pps_len = buf.readint16()
+            self.pps.append(buf.readstr(pps_len))
+        self.has_children = False
+
+    def generate_fields(self):
+        for x in super(AvcCBox, self).generate_fields():
+            yield x
+        yield ("Confiuration level", self.configuration_level)
+        yield ("Profile", self.profile)
+        yield ("Profile compatibility", self.profile_compatibility)
+        yield ("Level", self.level)
+        yield ("Length size minus 1", self.len_minus_1)
+        for sps in self.sps:
+            yield ("SPS", sps.encode('hex'))
+        for pps in self.pps:
+            yield ("PPS", pps.encode('hex'))
+
+
 boxmap = {
     'mvhd' : MovieHeader,
     'tkhd' : TrackHeader,
@@ -459,4 +498,5 @@ boxmap = {
     'urn ' : DataEntryUrnBox,
     'mehd' : MovieExtendsHeader,
     'trex' : TrackExtendsBox,
+    'avcC' : AvcCBox,
     }
