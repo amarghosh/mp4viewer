@@ -72,7 +72,10 @@ class TrackFragmentRun(box.FullBox):
                 if self.version == 0:
                     off = buf.readint32()
                 else:
-                    off = buf.readint64()
+                    #signed, so do the two's complement
+                    off = buf.readint32()
+                    if off & 0x80000000:
+                        off = -1 * ((off^0xffffffff) + 1)
             self.samples.append((dur,size,flags,off))
     
     def generate_fields(self):
