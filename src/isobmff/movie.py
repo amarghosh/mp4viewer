@@ -1,6 +1,7 @@
+from __future__ import absolute_import
 
 import sys
-import box
+from . import box
 
 class MovieHeader(box.FullBox):
     def parse(self, buf):
@@ -25,7 +26,7 @@ class MovieHeader(box.FullBox):
     def generate_fields(self):
         for x in super(MovieHeader, self).generate_fields():
             yield x
-        from utils import get_utc_from_seconds_since_1904
+        from .utils import get_utc_from_seconds_since_1904
         yield ("creation time", self.creation_time, get_utc_from_seconds_since_1904(self.creation_time).ctime())
         yield ("modification time", self.creation_time, get_utc_from_seconds_since_1904(self.modification_time).ctime())
         yield ("timescale", self.timescale)
@@ -63,7 +64,7 @@ class TrackHeader(box.FullBox):
     def generate_fields(self):
         for x in super(TrackHeader, self).generate_fields():
             yield x
-        from utils import get_utc_from_seconds_since_1904
+        from .utils import get_utc_from_seconds_since_1904
         yield ("creation time", self.creation_time, get_utc_from_seconds_since_1904(self.creation_time).ctime())
         yield ("modification time", self.modification_time, get_utc_from_seconds_since_1904(self.modification_time).ctime())
         yield ("track id", self.track_id)
@@ -93,8 +94,8 @@ class MediaHeader(box.FullBox):
         buf.skipbytes(2)
 
     def generate_fields(self):
-        from utils import parse_iso639_2_15bit
-        from utils import get_utc_from_seconds_since_1904
+        from .utils import parse_iso639_2_15bit
+        from .utils import get_utc_from_seconds_since_1904
         for x in super(MediaHeader, self).generate_fields():
             yield x
         yield ("creation time", self.creation_time, get_utc_from_seconds_since_1904(self.creation_time).ctime())

@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+from __future__ import print_function
 from datasource import DataBuffer
 
 class DataBufferTest(object):
@@ -45,4 +46,4 @@ if __name__ == '__main__':
     # The file is a sequence of 0xA5 bytes
     dbt = DataBufferTest('tests/1.dat')
     dbt.run()
-    print "Success"
+    print("Success")

@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+from __future__ import print_function
 import os
 import sys
 import argparse
@@ -18,7 +19,7 @@ def getboxlist(buf, parent=None):
             boxes.append(box)
     except:
         import traceback
-        print traceback.format_exc()
+        print(traceback.format_exc())
     return boxes
 
 def get_box_node(box, args):

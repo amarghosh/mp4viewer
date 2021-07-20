@@ -1,5 +1,6 @@
 
 import os
+import sys
 
 class FileSource(object):
     def __init__(self, f):
@@ -28,7 +29,7 @@ class DataBuffer:
         self.stream_offset = 0
         self.buf_size = 0
         self.read_ptr = 0
-        self.data = ''
+        self.data = b''
 
     def __str__(self):
         return "<datasource size %d, readptr %d, offset %d>" %(
@@ -46,7 +47,7 @@ class DataBuffer:
         remaining_bytes = self.buf_size - self.read_ptr
         if len(data):
             # print "Read %d" %(len(data))
-            self.data = self.data[self.read_ptr:] + data
+            self.data = b''.join([ self.data[self.read_ptr:] , data])
             self.buf_size = remaining_bytes + len(data)
             self.stream_offset += self.read_ptr
             self.read_ptr = 0
@@ -83,7 +84,10 @@ class DataBuffer:
         self.checkbuffer(length + offset)
         if self.bit_position:
             raise Exception("Not aligned: %d" %self.bit_position)
-        return str(self.data[self.read_ptr + offset:self.read_ptr + offset + length])
+        if sys.version_info > (3,0):
+            return str(self.data[self.read_ptr + offset:self.read_ptr + offset + length], 'utf-8' )
+        else:
+            return str(self.data[self.read_ptr + offset:self.read_ptr + offset + length])
 
     def readstr(self, length):
         s = self.peekstr(length)
@@ -112,7 +116,11 @@ class DataBuffer:
             raise Exception("Not aligned: %d" %self.bit_position)
         v = 0
         for i in range(0, bytecount):
-            v = v << 8 | ord(self.data[self.read_ptr + i])
+            if sys.version_info > (3,0):
+                data_byte = self.data[self.read_ptr + i]
+            else :
+                data_byte = ord(self.data[self.read_ptr + i])
+            v = v << 8 | data_byte
         return v
 
     def peekbits(self, bitcount):
@@ -128,7 +136,11 @@ class DataBuffer:
         result = 0
         while bits_read != bitcount:
             result <<= 8
-            result |= ord(self.data[self.read_ptr + byte_offset])
+            if sys.version_info > (3,0):
+                data_byte = self.data[self.read_ptr + byte_offset]
+            else :
+                data_byte = ord(self.data[self.read_ptr + byte_offset])
+            result |= data_byte
             byte_offset += 1
             if bits_read == 0 and self.bit_position != 0:
                 result &= (1 << (8 - self.bit_position)) - 1
@@ -174,7 +186,7 @@ class DataBuffer:
         else:
             # TODO: would this seek beyond?
             self.source.seek(count - remaining_bytes, os.SEEK_CUR)
-            self.data = ''
+            self.data = b''
             self.stream_offset += self.read_ptr + count
             self.buf_size = 0
             self.read_ptr = 0
