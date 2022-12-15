@@ -22,6 +22,7 @@ Screenshots:
 
 MP4Viewer uses gtk in graphics mode and requires that pygtk2.0 be installed in the system for viewing results in a window.
 
-For more info, contact the author at amarghosh at gmail dot com
+
+You can find more similar [MP4 tools in this page](https://github.com/video-dev/community-knowledge-base/blob/master/list-of-iso-bmff-mp4-tools.md)
 
 ### Modified for Python3 Compatability
