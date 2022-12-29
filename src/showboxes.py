@@ -1,8 +1,6 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
-from __future__ import print_function
 import os
-import sys
 import argparse
 
 from datasource import DataBuffer
@@ -29,7 +27,7 @@ def get_box_node(box, args):
         if isinstance(field, Box):
             add_box(node, field, args)
         elif type(field) is not tuple:
-            raise Exception("Expected a tuple, got a %s" %type(field));
+            raise Exception("Expected a tuple, got a %s" %type(field))
         else:
             #generate fields yields a tuple of order (name, value, [formatted_value])
             value = field[1]
