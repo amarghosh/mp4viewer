@@ -1,3 +1,5 @@
+from __future__ import print_function
+from __future__ import absolute_import
 
 import sys
 
@@ -84,8 +86,8 @@ class Box(object):
         if self.has_children:
             self.parse_children(buf)
         if self.consumed_bytes < self.size:
-            print "Skipping tailing bytes: Possible parse error (or unhandled box) in %s: consumed %d, skip %d" %(
-                    self, self.consumed_bytes, self.size - self.consumed_bytes)
+            print("Skipping tailing bytes: Possible parse error (or unhandled box) in %s: consumed %d, skip %d" %(
+                    self, self.consumed_bytes, self.size - self.consumed_bytes))
             buf.skipbytes(self.size - self.consumed_bytes)
             self.consumed_bytes = self.size
 
@@ -122,7 +124,7 @@ class Box(object):
                 self.children.append(box)
                 self.consumed_bytes += box.size
             except Exception as e:
-                print "Error parsing children of %s: %s" %(self, e)
+                print("Error parsing children of %s: %s" %(self, e))
                 buf.seekto(self.buffer_offset + self.size)
                 self.consumed_bytes = self.size
 
@@ -153,10 +155,10 @@ class Box(object):
 
     @staticmethod
     def getnextbox(buf, parent=None):
-        import movie
-        import fragment
-        import flv
-        import cenc
+        from . import movie
+        from . import fragment
+        from . import flv
+        from . import cenc
         boxmap = {
             'ftyp' : FileType,
         }

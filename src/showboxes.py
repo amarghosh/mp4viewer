@@ -1,7 +1,6 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import os
-import sys
 import argparse
 
 from datasource import DataBuffer
@@ -18,7 +17,7 @@ def getboxlist(buf, parent=None):
             boxes.append(box)
     except:
         import traceback
-        print traceback.format_exc()
+        print(traceback.format_exc())
     return boxes
 
 def get_box_node(box, args):
@@ -28,7 +27,7 @@ def get_box_node(box, args):
         if isinstance(field, Box):
             add_box(node, field, args)
         elif type(field) is not tuple:
-            raise Exception("Expected a tuple, got a %s" %type(field));
+            raise Exception("Expected a tuple, got a %s" %type(field))
         else:
             #generate fields yields a tuple of order (name, value, [formatted_value])
             value = field[1]

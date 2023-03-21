@@ -1,4 +1,3 @@
-
 import os
 
 class FileSource(object):
@@ -28,7 +27,7 @@ class DataBuffer:
         self.stream_offset = 0
         self.buf_size = 0
         self.read_ptr = 0
-        self.data = ''
+        self.data = b''
 
     def __str__(self):
         return "<datasource size %d, readptr %d, offset %d>" %(
@@ -45,8 +44,8 @@ class DataBuffer:
         data = self.source.read(req_bytes)
         remaining_bytes = self.buf_size - self.read_ptr
         if len(data):
-            # print "Read %d" %(len(data))
-            self.data = self.data[self.read_ptr:] + data
+            # print(f"Read {len(data)}")
+            self.data = b''.join([ self.data[self.read_ptr:] , data])
             self.buf_size = remaining_bytes + len(data)
             self.stream_offset += self.read_ptr
             self.read_ptr = 0
@@ -54,8 +53,7 @@ class DataBuffer:
                 raise Exception("Not enough data for %d bytes; read %d, remaining %d",
                     minimum, len(data), self.buf_size)
         else:
-            # print "Min %d, size %d, pos %d, offset %d" %(
-            #    min, self.buf_size, self.read_ptr, self.stream_offset)
+            # print( f"Min {min}, size {self.buf_size}, pos {self.read_ptr}, offset {self.stream_offset}")
             raise Exception("Read nothing: req %d, offset %d, read_ptr %d" %(
                 minimum, self.stream_offset, self.read_ptr))
 
@@ -83,7 +81,7 @@ class DataBuffer:
         self.checkbuffer(length + offset)
         if self.bit_position:
             raise Exception("Not aligned: %d" %self.bit_position)
-        return str(self.data[self.read_ptr + offset:self.read_ptr + offset + length])
+        return str(self.data[self.read_ptr + offset:self.read_ptr + offset + length], 'utf-8' )
 
     def readstr(self, length):
         s = self.peekstr(length)
@@ -112,11 +110,12 @@ class DataBuffer:
             raise Exception("Not aligned: %d" %self.bit_position)
         v = 0
         for i in range(0, bytecount):
-            v = v << 8 | ord(self.data[self.read_ptr + i])
+            data_byte = self.data[self.read_ptr + i]
+            v = v << 8 | data_byte
         return v
 
     def peekbits(self, bitcount):
-        bytes_req = (bitcount + self.bit_position) / 8
+        bytes_req = (bitcount + self.bit_position) // 8
         bytes_req += 1 if (bitcount + self.bit_position) % 8 else 0
         self.checkbuffer(bytes_req)
         if bitcount > 32:
@@ -128,7 +127,8 @@ class DataBuffer:
         result = 0
         while bits_read != bitcount:
             result <<= 8
-            result |= ord(self.data[self.read_ptr + byte_offset])
+            data_byte = self.data[self.read_ptr + byte_offset]
+            result |= data_byte
             byte_offset += 1
             if bits_read == 0 and self.bit_position != 0:
                 result &= (1 << (8 - self.bit_position)) - 1
@@ -142,7 +142,7 @@ class DataBuffer:
 
     def readbits(self, bitcount):
         res = self.peekbits(bitcount)
-        self.read_ptr += (bitcount + self.bit_position) / 8
+        self.read_ptr += (bitcount + self.bit_position) // 8
         self.bit_position = (self.bit_position + bitcount) % 8
         return res
 
@@ -174,7 +174,7 @@ class DataBuffer:
         else:
             # TODO: would this seek beyond?
             self.source.seek(count - remaining_bytes, os.SEEK_CUR)
-            self.data = ''
+            self.data = b''
             self.stream_offset += self.read_ptr + count
             self.buf_size = 0
             self.read_ptr = 0

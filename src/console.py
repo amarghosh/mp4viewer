@@ -1,4 +1,3 @@
-
 import sys
 from tree import Tree, Attr
 

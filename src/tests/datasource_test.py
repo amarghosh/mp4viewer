@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 from datasource import DataBuffer
 
@@ -45,4 +45,4 @@ if __name__ == '__main__':
     # The file is a sequence of 0xA5 bytes
     dbt = DataBufferTest('tests/1.dat')
     dbt.run()
-    print "Success"
+    print("Success")
