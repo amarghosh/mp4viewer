@@ -8,3 +8,4 @@
 *.tar.gz
 *.rar
 *.vscode
+*__pycache__
