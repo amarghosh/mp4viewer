@@ -1,5 +1,3 @@
-#!/usr/bin/python3
-
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
@@ -45,10 +43,8 @@ class GtkRenderer(object):
 
         col = Gtk.TreeViewColumn(data.name)
         cell = Gtk.CellRendererText()
-
         col.pack_start(cell, True)
         col.add_attribute(cell, "markup", 0)
-        
         self.treeview.append_column(col)
 
         for child in data.children:
