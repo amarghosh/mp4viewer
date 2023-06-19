@@ -56,6 +56,9 @@ class Box(object):
         'ssix' : 'Subsegment index',
         'sbgp' : 'Sample to group box',
         'sgpd' : 'Sample group description box',
+        'elst' : 'Edit list',
+        'colr' : 'Colour information',
+        'ctts' : 'Composition offset',
         #common encryption boxes
         'tenc' : 'Track encryption box',
         'senc' : 'Sample encryption box',
@@ -75,6 +78,9 @@ class Box(object):
         'moof', 'traf', 'mfra', 'skip', 'meta', 'ipro', 'sinf', 'schi',
     ]
 
+    # Avoid printing parsing errors for known data boxes
+    data_boxes = ['mdat', 'udta']
+
     def __init__(self, buf, parent=None, is_container = False):
         self.parent = parent
         pos = buf.current_position()
@@ -85,11 +91,15 @@ class Box(object):
         self.consumed_bytes = buf.current_position() - pos
         if self.has_children:
             self.parse_children(buf)
-        if self.consumed_bytes < self.size:
-            print("Skipping tailing bytes: Possible parse error (or unhandled box) in %s: consumed %d, skip %d" %(
-                    self, self.consumed_bytes, self.size - self.consumed_bytes))
+        if self.remaining_bytes() > 0:
+            if self.boxtype not in Box.data_boxes:
+                print("Skipping tailing bytes: Possible parse error (or unhandled box) in %s: consumed %d, skip %d %08x" %(
+                    self, self.consumed_bytes, self.remaining_bytes(), buf.peekint(4)))
             buf.skipbytes(self.size - self.consumed_bytes)
             self.consumed_bytes = self.size
+
+    def remaining_bytes(self):
+        return self.size - self.consumed_bytes
 
     def parse(self, buf):
         islarge = False
@@ -116,6 +126,11 @@ class Box(object):
         if boxtype == 'uuid':
             buf.skipbytes(16)
             self.consumed_bytes += 16
+
+        # free or skip shall be skipped
+        if boxtype == 'free' or boxtype == 'skip':
+            buf.skipbytes(self.remaining_bytes())
+            self.consumed_bytes = self.size
 
     def parse_children(self, buf):
         while self.consumed_bytes + 8 < self.size:
