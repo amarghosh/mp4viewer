@@ -146,6 +146,9 @@ class DataBuffer:
         self.bit_position = (self.bit_position + bitcount) % 8
         return res
 
+    def readbytes(self, count):
+        return [self.readbyte() for i in range(count)]
+
     def readint(self, bytecount):
         v = self.peekint(bytecount)
         self.read_ptr += bytecount

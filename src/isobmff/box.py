@@ -1,6 +1,8 @@
 from __future__ import print_function
 from __future__ import absolute_import
 
+import traceback
+
 import sys
 
 def string_to_hex(s):
@@ -139,6 +141,7 @@ class Box(object):
                 self.children.append(box)
                 self.consumed_bytes += box.size
             except Exception as e:
+                print(traceback.format_exc())
                 print("Error parsing children of %s: %s" %(self, e))
                 buf.seekto(self.buffer_offset + self.size)
                 self.consumed_bytes = self.size

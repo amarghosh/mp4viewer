@@ -339,10 +339,13 @@ class SampleToChunkBox(box.FullBox):
         for x in super(SampleToChunkBox, self).generate_fields():
             yield x
         yield ("entry count", self.entry_count)
+        yield ("chunk data hidden", "You can enable it in movies.py SampleToChunkBox")
+        """
         for entry in self.entries:
             yield ("first chunk", entry[0])
             yield ("samples per chunk", entry[1])
             yield ("sample description index", entry[2])
+        """
 
 
 class ChunkOffsetBox(box.FullBox):
@@ -439,7 +442,7 @@ class TrackExtendsBox(box.FullBox):
         yield ("Default sample duration", self.default_sample_duration)
         yield ("Default sample size", self.default_sample_size)
         yield ("Default sample flags", self.default_sample_flags)
-    
+
 
 class AvcCBox(box.Box):
     def parse(self, buf):
@@ -454,15 +457,29 @@ class AvcCBox(box.Box):
 
         self.sps = []
         num_of_sps = buf.readbits(5)
-        for x in xrange(num_of_sps):
+        for x in range(num_of_sps):
             sps_len = buf.readint16()
-            self.sps.append(buf.readstr(sps_len))
+            self.sps.append(buf.readbytes(sps_len))
 
         self.pps = []
         num_of_pps = buf.readbyte()
-        for x in xrange(num_of_pps):
+        for x in range(num_of_pps):
             pps_len = buf.readint16()
-            self.pps.append(buf.readstr(pps_len))
+            self.pps.append(buf.readbytes(pps_len))
+
+        if self.remaining_bytes() >= 4:
+            buf.readbits(6)
+            self.chroma_format = buf.readbits(2)
+            buf.readbits(5)
+            self.bit_depth_luma_minus_8 = buf.readbits(3)
+            buf.readbits(5)
+            self.bit_depth_chroma_minus_8 = buf.readbits(3)
+            self.sps_ext_len = buf.readbyte()
+            buf.skipbytes(self.sps_ext_len)
+        else:
+            self.chroma_format = -1
+
+
         self.has_children = False
 
     def generate_fields(self):
@@ -473,10 +490,17 @@ class AvcCBox(box.Box):
         yield ("Profile compatibility", self.profile_compatibility)
         yield ("Level", self.level)
         yield ("Length size minus 1", self.len_minus_1)
+        yield ("number of sps", len(self.sps))
         for sps in self.sps:
-            yield ("SPS", sps.encode('hex'))
+            yield ("SPS", sps)
+        yield ("number of pps", len(self.pps))
         for pps in self.pps:
-            yield ("PPS", pps.encode('hex'))
+            yield ("PPS", pps)
+        if self.chroma_format != -1:
+            yield('chroma format', self.chroma_format)
+            yield('bit depth luma minus 8', self.bit_depth_luma_minus_8)
+            yield('bit depth chroma minus 8', self.bit_depth_chroma_minus_8)
+            yield('sps ext byte count', self.sps_ext_len)
 
 
 boxmap = {

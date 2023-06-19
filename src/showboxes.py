@@ -32,9 +32,10 @@ def get_box_node(box, args):
             #generate fields yields a tuple of order (name, value, [formatted_value])
             value = field[1]
             if args.truncate and type(value) is list and len(value) > 10:
-                value = "[%s ... %s]" %(
+                value = "[%s ... %s] %d items" %(
                     ','.join([str(i) for i in value[:3]]),
-                    ','.join([str(i) for i in value[-3:]])
+                    ','.join([str(i) for i in value[-3:]]),
+                    len(value),
                 )
             node.add_attr(field[0], value, field[2] if len(field) == 3 else None)
     return node
