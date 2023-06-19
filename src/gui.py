@@ -1,13 +1,13 @@
 #!/usr/bin/python3
 
-import pygtk
-pygtk.require('2.0')
-import gtk
+import gi
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk
 import xml.etree.ElementTree as ET
 
 class GtkRenderer(object):
     def __init__(self):
-        w = gtk.Window()
+        w = Gtk.Window()
         w.resize(1024, 768)
         w.connect("delete_event", self.on_delete)
         w.connect("destroy", self.on_destroy)
@@ -17,7 +17,7 @@ class GtkRenderer(object):
         return False
 
     def on_destroy(self, widget, data=None):
-        gtk.main_quit()
+        Gtk.main_quit()
 
     def format_node(self, name, value, istitle=False):
         root = ET.Element('markup')
@@ -26,7 +26,7 @@ class GtkRenderer(object):
         child.text = name
         child = ET.SubElement(root, 'span', {'foreground' : 'black'})
         child.text = ": %s" %(value)
-        return ET.tostring(root)
+        return ET.tostring(root).decode()
 
     def populate(self, datanode, parent=None):
         treenode = self.treestore.append(parent, [
@@ -40,23 +40,25 @@ class GtkRenderer(object):
             self.populate(child, treenode)
 
     def render(self, data):
-        self.treestore = gtk.TreeStore(str)
-        self.treeview = gtk.TreeView(self.treestore)
+        self.treestore = Gtk.TreeStore(str)
+        self.treeview = Gtk.TreeView(model=self.treestore)
 
-        col = gtk.TreeViewColumn(data.name)
-        self.treeview.append_column(col)
-        cell = gtk.CellRendererText()
+        col = Gtk.TreeViewColumn(data.name)
+        cell = Gtk.CellRendererText()
+
         col.pack_start(cell, True)
-        col.add_attribute(cell, 'markup', 0)
+        col.add_attribute(cell, "markup", 0)
+        
+        self.treeview.append_column(col)
 
         for child in data.children:
             self.populate(child)
 
-        sw = gtk.ScrolledWindow()
-        sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        sw = Gtk.ScrolledWindow()
+        sw.set_vexpand(True)
         sw.add(self.treeview)
         self.window.add(sw)
         self.treeview.expand_all()
         self.window.show_all()
-        gtk.main()
+        Gtk.main()
 
