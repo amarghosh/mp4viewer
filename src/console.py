@@ -1,50 +1,67 @@
+""" Console renderer """
 import sys
-from tree import Tree, Attr
+from tree import Tree
 
-def write(s):
+def _write(s):
     sys.stdout.write(s)
 
-class ConsoleRenderer(object):
+class ConsoleRenderer:
+    """ Prints output to the console """
     VERT = '!'
     HORI = '-'
     COLOR_HEADER = '\033[31m'
     COLOR_ATTR = '\033[36m'
+    COLOR_SUB_TEXT = '\033[38;5;243m'
     ENDCOL = '\033[0m'
 
-    def __init__(self, offset=None, indent_unit='    ', have_children=False):
+    def __init__(self, offset=None, indent_unit='    '):
         self.offset = '' if offset is None else offset
         self.indent_unit = indent_unit
         self.header_prefix = '`' + indent_unit.replace(' ', ConsoleRenderer.HORI)[1:]
+        self.use_colors = True
+
+    def _wrap_color(self, text, color):
+        suffix = ConsoleRenderer.ENDCOL if self.use_colors else ''
+        return f'{color}{text}{suffix}'
+
+    def _sub_text(self, text):
+        if self.use_colors:
+            wrapped_text = self._wrap_color(text, ConsoleRenderer.COLOR_SUB_TEXT)
+        else:
+            wrapped_text = f"<{text}>"
+        return wrapped_text
 
     def show_node(self, node, prefix):
-        write("%s%s%s%s%s\n" %(prefix, self.header_prefix, ConsoleRenderer.COLOR_HEADER,
-            node.name, ConsoleRenderer.ENDCOL))
+        """ recursively display the node """
+        header_color = ConsoleRenderer.COLOR_HEADER if self.use_colors else ''
+        attr_color = ConsoleRenderer.COLOR_ATTR if self.use_colors else ''
+        _write(f"{prefix}{self.header_prefix}{self._wrap_color(node.name, header_color)}"
+                f" {self._sub_text(node.desc)}\n")
         if len(node.children):
             data_prefix = prefix + self.indent_unit[:-1] + ConsoleRenderer.VERT + self.indent_unit
         else:
             data_prefix = prefix + self.indent_unit + self.indent_unit
         for attr in node.attrs:
-            if attr.display_value != None:
-                write("%s%s%s%s: %s (%s)\n" %(data_prefix, ConsoleRenderer.COLOR_ATTR, attr.name,
-                    ConsoleRenderer.ENDCOL, attr.value, attr.display_value))
+            _write(f"{data_prefix}{self._wrap_color(attr.name, attr_color)}: {attr.value}")
+            if attr.display_value is not None:
+                _write(f" {self._sub_text(attr.display_value)}\n")
             else:
-                write("%s%s%s%s: %s\n" %(data_prefix, ConsoleRenderer.COLOR_ATTR, attr.name,
-                    ConsoleRenderer.ENDCOL, attr.value))
+                _write('\n')
         child_indent = prefix + self.indent_unit[:-1] + ConsoleRenderer.VERT
-        for i in range(len(node.children)):
+        for i, child in enumerate(node.children):
             if i + 1 == len(node.children):
                 child_indent = prefix + self.indent_unit
-            self.show_node(node.children[i], child_indent)
+            self.show_node(child, child_indent)
 
-    def render(self, tree):
+    def render(self, tree:Tree):
+        """ Render the tree (recursive) """
         self.show_node(tree, self.offset)
 
-    def updatecolors():
+    def update_colors(self):
+        """ disable colours if they are not supported """
         if not sys.stdout.isatty():
-            ConsoleRenderer.disable_colors()
+            self.disable_colors()
 
     def disable_colors(self):
-            ConsoleRenderer.COLOR_HEADER = ''
-            ConsoleRenderer.COLOR_ATTR = ''
-            ConsoleRenderer.ENDCOL = ''
-
+        """ Do not use ascii color prefixes and sufixes in the output """
+        self.use_colors = False
