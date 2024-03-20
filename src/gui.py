@@ -2,13 +2,13 @@
 # pylint: disable=import-error,wrong-import-position
 import xml.etree.ElementTree as ET
 import gi
-from gi.repository import Gtk
 gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk
 
 class GtkRenderer:
     """ GTK based renderer """
     def __init__(self):
-        w = Gtk.Window()
+        w = Gtk.Window(title="MP4 Viewer")
         w.resize(1024, 768)
         w.connect("delete_event", self.on_delete)
         w.connect("destroy", self.on_destroy)
@@ -24,25 +24,37 @@ class GtkRenderer:
         # pylint: disable=unused-argument,missing-function-docstring
         Gtk.main_quit()
 
-    def format_node(self, name, value, istitle=False):
+    def format_node(self, name, raw_value, display_value=None, istitle=False):
         """ Returns an xml string that describes a single row """
+        # Ref: https://web.mit.edu/ghudson/dev/nokrb/third/pango/docs/html/PangoMarkupFormat.html
         root = ET.Element('markup')
-        color = 'red' if istitle else 'blue'
-        child = ET.SubElement(root, 'span', {'foreground' : color})
+        # key
+        child = ET.SubElement(root, 'span', {'size': 'large'})
+        if istitle:
+            child.attrib['weight'] = 'bold'
+            child.attrib['foreground'] = 'red'
+        else:
+            child.attrib['foreground'] = 'blue'
         child.text = name
-        child = ET.SubElement(root, 'span', {'foreground' : 'black'})
-        child.text = f": {value}"
+        # value
+        child = ET.SubElement(root, 'span', {'foreground' : 'black', 'size': 'large'})
+        if display_value is None:
+            child.text = f": {raw_value}"
+        else:
+            child.text = f": {display_value}"
+            child = ET.SubElement(root, 'span', {'foreground': '#121212', 'style':'italic'})
+            child.text = f" ({raw_value})"
+
         return ET.tostring(root).decode()
 
     def populate(self, datanode, parent=None):
         """ Add entries for each attribute of the current node and its children (recursive) """
         treenode = self.treestore.append(parent, [
-            self.format_node(datanode.name, datanode.desc, True)
+            self.format_node(datanode.name, datanode.desc, istitle=True)
         ])
         for attr in datanode.attrs:
             self.treestore.append(treenode, [self.format_node(
-                attr.name, attr.display_value if attr.display_value else attr.value
-            )])
+                attr.name, attr.value, attr.display_value)])
         for child in datanode.children:
             self.populate(child, treenode)
 

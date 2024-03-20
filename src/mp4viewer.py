@@ -54,13 +54,15 @@ def main():
     """ the main """
     parser = argparse.ArgumentParser(
         description='Process iso-bmff file and list the boxes and their contents')
-    parser.add_argument('-o', choices=['stdout','gui'], default='stdout',
+    parser.add_argument('-o', '--output', choices=['stdout','gui'], default='stdout',
         help='output format', dest='output_format')
     parser.add_argument('-e', '--expand-arrays', action='store_false',
         help='do not truncate long arrays', dest='truncate')
     parser.add_argument('-c', '--color', choices=['on', 'off'], default='on', dest='color',
         help='turn on/off colors in console based output; on by default')
     parser.add_argument('--debug', action='store_true', help='Used for internal debugging')
+    parser.add_argument('--latex', action='store_true',
+                        help='Generate latex-in-markdown for github README')
     parser.add_argument('input_file', metavar='iso-base-media-file', help='Path to iso media file')
     args = parser.parse_args()
 
@@ -68,7 +70,7 @@ def main():
 
     renderer = None
     if args.output_format == 'stdout':
-        renderer = ConsoleRenderer('  ')
+        renderer = ConsoleRenderer('  ', latex_md_for_github=args.latex)
         if args.color == 'off':
             renderer.disable_colors()
         else:
