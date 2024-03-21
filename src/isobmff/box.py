@@ -31,9 +31,9 @@ class Box:
             self.parse_children(parser)
         if self.remaining_bytes() > 0:
             if self.boxtype not in Box.data_boxes:
-                print(f"Skipping tailing bytes: Possible parse error (or unhandled box) in {self}"
-                    f": consumed {self.consumed_bytes}, skip {self.remaining_bytes()} "
-                    f"{buf.peekint(4):08x}")
+                _error_print(f"Skipping tailing bytes: Possible parse error (or unhandled box)"
+                     f" in {self}: consumed {self.consumed_bytes}, skip {self.remaining_bytes()} "
+                     f"{buf.peekint(4):08x}")
             try:
                 self._skip_remaining_bytes(buf)
                 assert self.consumed_bytes == self.size, f'{self} size error'

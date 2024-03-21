@@ -7,6 +7,7 @@ import argparse
 from datasource import DataBuffer
 from datasource import FileSource
 from console import ConsoleRenderer
+from json_renderer import JsonRenderer
 from tree import Tree
 
 from isobmff.parser import IsobmffParser, getboxdesc
@@ -54,7 +55,7 @@ def main():
     """ the main """
     parser = argparse.ArgumentParser(
         description='Process iso-bmff file and list the boxes and their contents')
-    parser.add_argument('-o', '--output', choices=['stdout','gui'], default='stdout',
+    parser.add_argument('-o', '--output', choices=['stdout','gui', 'json'], default='stdout',
         help='output format', dest='output_format')
     parser.add_argument('-e', '--expand-arrays', action='store_false',
         help='do not truncate long arrays', dest='truncate')
@@ -79,6 +80,9 @@ def main():
         # pylint: disable=import-outside-toplevel
         from gui import GtkRenderer
         renderer = GtkRenderer()
+
+    if args.output_format == 'json':
+        renderer = JsonRenderer()
 
     renderer.render(root)
 

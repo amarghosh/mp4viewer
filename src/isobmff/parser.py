@@ -1,5 +1,6 @@
 """ isobmff parser public interface """
 
+import sys
 import traceback
 from datasource import DataBuffer
 from . import box, movie, fragment, flv, cenc
@@ -50,7 +51,8 @@ class IsobmffParser:
         This is a work in progress.
         """
         if not self.debug:
-            print("Detected potential parse error; run with --debug to see more info")
+            print("Detected potential parse error; run with --debug to see more info",
+                  file=sys.stderr)
             return
         print("\nBuffer error detected; scanning through the file looking for boxes."
                 "This will take time as we need to go through every byte.\n")
