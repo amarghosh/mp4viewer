@@ -1,9 +1,9 @@
 """ isobmff parser public interface """
-
-import sys
 import traceback
+
 from datasource import DataBuffer
 from . import box, movie, fragment, flv, cenc
+from .utils import error_print
 
 class IsobmffParser:
     """ Parser class """
@@ -31,7 +31,7 @@ class IsobmffParser:
                 next_box = self.getnextbox(None)
                 boxes.append(next_box)
         except (AssertionError, TypeError):
-            print(traceback.format_exc())
+            error_print(traceback.format_exc())
         return boxes
 
     def getnextbox(self, parent:box.Box):
@@ -51,8 +51,7 @@ class IsobmffParser:
         This is a work in progress.
         """
         if not self.debug:
-            print("Detected potential parse error; run with --debug to see more info",
-                  file=sys.stderr)
+            error_print("Detected potential parse error; run with --debug to see more info")
             return
         print("\nBuffer error detected; scanning through the file looking for boxes."
                 "This will take time as we need to go through every byte.\n")

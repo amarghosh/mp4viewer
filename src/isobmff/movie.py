@@ -2,7 +2,11 @@
 # pylint: disable=too-many-instance-attributes
 
 from . import box
-from .utils import get_utc_from_seconds_since_1904, parse_iso639_2_15bit
+from .utils import get_utc_from_seconds_since_1904
+from .utils import parse_iso639_2_15bit
+from .utils import stringify_duration
+from .utils import error_print
+
 
 class MovieHeader(box.FullBox):
     """ mvhd """
@@ -33,7 +37,7 @@ class MovieHeader(box.FullBox):
         yield ("modification time", self.creation_time,
                 get_utc_from_seconds_since_1904(self.modification_time).ctime())
         yield ("timescale", self.timescale)
-        yield ("duration", self.duration)
+        yield ("duration", self.duration, stringify_duration(self.duration / self.timescale))
         yield ("rate", f"0x{self.rate:08X}")
         yield ("volume", f"0x{self.volume:04X}")
         yield ("matrix", self.matrix)
@@ -73,7 +77,12 @@ class TrackHeader(box.FullBox):
         yield ("modification time", self.modification_time,
                 get_utc_from_seconds_since_1904(self.modification_time).ctime())
         yield ("track id", self.track_id)
-        yield ("duration", self.duration)
+        mvhd = self.find_descendant_of_ancestor('moov', 'mvhd')
+        if mvhd is None:
+            error_print("Failed to find movie header to decode track duration")
+            yield ("duration", self.duration)
+        else:
+            yield ("duration", self.duration, stringify_duration(self.duration/mvhd.timescale))
         yield ("layer", f"0x{self.layer:04X}")
         yield ("alternate group", f"0x{self.altgroup:04X}")
         yield ("volume", f"0x{self.volume:04X}")
@@ -107,7 +116,7 @@ class MediaHeader(box.FullBox):
         yield ("modification time", self.modification_time,
                 get_utc_from_seconds_since_1904(self.modification_time).ctime())
         yield ("timescale", self.timescale)
-        yield ("duration", self.duration)
+        yield ("duration", self.duration, stringify_duration(self.duration / self.timescale))
         yield ("language", self.language, parse_iso639_2_15bit(self.language))
 
 

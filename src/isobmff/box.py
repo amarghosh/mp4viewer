@@ -3,10 +3,10 @@
 # pylint: disable=too-many-instance-attributes
 
 import traceback
-import sys
 
-def _error_print(s):
-    print(s, file=sys.stderr)
+from collections import deque
+from .utils import error_print
+
 
 class Box:
     """
@@ -31,25 +31,25 @@ class Box:
             self.parse_children(parser)
         if self.remaining_bytes() > 0:
             if self.boxtype not in Box.data_boxes:
-                _error_print(f"Skipping tailing bytes: Possible parse error (or unhandled box)"
+                error_print(f"Skipping tailing bytes: Possible parse error (or unhandled box)"
                      f" in {self}: consumed {self.consumed_bytes}, skip {self.remaining_bytes()} "
                      f"{buf.peekint(4):08x}")
             try:
                 self._skip_remaining_bytes(buf)
                 assert self.consumed_bytes == self.size, f'{self} size error'
             except BufferError:
-                _error_print(f"\nInvalid data in box {self.boxtype} at {self.buffer_offset}")
+                error_print(f"\nInvalid data in box {self.boxtype} at {self.buffer_offset}")
                 remaining_bytes = self._remaining_bytes(buf)
                 overflow = buf.current_position() + remaining_bytes - len(buf)
-                _error_print(f"Attempt to skip {remaining_bytes} bytes from "
+                error_print(f"Attempt to skip {remaining_bytes} bytes from "
                         f"{buf.current_position()}, but the file is only {len(buf)} bytes; "
                         f"overflow by {overflow} bytes")
-                _error_print("It is possible that the file was truncated by an incomplete download,"
+                error_print("It is possible that the file was truncated by an incomplete download,"
                         " or it was generated using a slightly buggy encoder")
-                _error_print("You can use ffmpeg to get more details:"
+                error_print("You can use ffmpeg to get more details:"
                         "`ffmpeg -v error -i file.mp4 -f null - `")
                 parser.dump_remaining_fourccs()
-                _error_print(f"skipping the remaining {buf.remaining_bytes()} bytes")
+                error_print(f"skipping the remaining {buf.remaining_bytes()} bytes")
                 buf.skipbytes(buf.remaining_bytes())
 
     def _remaining_bytes(self, buf):
@@ -148,6 +148,31 @@ class Box:
             if child.boxtype == boxtype:
                 return child
         return None
+
+
+    def find_descendant(self, boxtype):
+        """ Find the first descendant with the matching boxtype; performs a breadth first search """
+        q = deque(self.children)
+        while len(q) > 0:
+            box = q.popleft()
+            q.extend(box.children)
+            if box.boxtype == boxtype:
+                return box
+
+        return None
+
+    def find_descendant_of_ancestor(self, ancestor_boxtype, target_boxtype):
+        """ Find the first matching BFS descendant of a matching direct ancestor """
+        ancestor = self.find_ancestor(ancestor_boxtype)
+        if ancestor is None:
+            error_print(f"{self} has no ancestor of type {ancestor_boxtype}")
+            return None
+
+        descendant = ancestor.find_descendant(target_boxtype)
+        if descendant is None:
+            error_print(f"{self}: ancestor {ancestor} has no descendant of type {target_boxtype}")
+        return descendant
+
 
     def generate_fields(self):
         """
