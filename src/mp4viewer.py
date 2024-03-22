@@ -54,17 +54,25 @@ def get_tree_from_file(path, args):
 def main():
     """ the main """
     parser = argparse.ArgumentParser(
-        description='Process iso-bmff file and list the boxes and their contents')
+        description='Parse mp4 files (ISO bmff) and view the boxes and their contents.  '
+        'The output can be viewed on the console, a window, or saved in to a json file.')
     parser.add_argument('-o', '--output', choices=['stdout','gui', 'json'], default='stdout',
-        help='output format', dest='output_format')
-    parser.add_argument('-e', '--expand-arrays', action='store_false',
-        help='do not truncate long arrays', dest='truncate')
+        help='Specify the output format. Please note that pygtk is required for `gui`. ',
+        dest='output_format')
     parser.add_argument('-c', '--color', choices=['on', 'off'], default='on', dest='color',
-        help='turn on/off colors in console based output; on by default')
+        help='Toggle colors in console based output; on by default.')
+    parser.add_argument('-j', '--json', dest='json_path',
+        help='Path to the json file where the output should be saved. If this is specified, '
+            'the json output will be generated and written to this file even if the requested '
+            'output format is not json. If the output format is json and this argument is not '
+            'specified, the json object will be written to the current directory using '
+            '"$PWD/$(basename input_file).mp4viewer.json"')
+    parser.add_argument('-e', '--expand-arrays', action='store_false',
+        help='Do not truncate long arrays', dest='truncate')
     parser.add_argument('--debug', action='store_true', help='Used for internal debugging')
     parser.add_argument('--latex', action='store_true',
                         help='Generate latex-in-markdown for github README')
-    parser.add_argument('input_file', metavar='iso-base-media-file', help='Path to iso media file')
+    parser.add_argument('input_file', help='Location of the ISO bmff file (mp4)')
     args = parser.parse_args()
 
     root = get_tree_from_file(args.input_file, args)
@@ -76,15 +84,20 @@ def main():
             renderer.disable_colors()
         else:
             renderer.update_colors()
+
     if args.output_format == 'gui':
         # pylint: disable=import-outside-toplevel
         from gui import GtkRenderer
         renderer = GtkRenderer()
 
     if args.output_format == 'json':
-        renderer = JsonRenderer()
+        renderer = JsonRenderer(mp4_path=args.input_file, output_path=args.json_path)
 
     renderer.render(root)
+
+    # Handle the case where json output is required in addition to the requested format
+    if args.json_path is not None and args.output_format != 'json':
+        JsonRenderer(mp4_path=args.input_file, output_path=args.json_path).render(root)
 
 
 if __name__ == "__main__":

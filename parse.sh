@@ -1,4 +1,3 @@
 #!/bin/bash
 
-cd src
-python3 mp4viewer.py $@
+PYTHONPATH=src python3 -m mp4viewer $@
