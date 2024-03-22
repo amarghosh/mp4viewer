@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # pylint: disable=missing-module-docstring,missing-class-docstring,missing-function-docstring
 
-from datasource import DataBuffer
+from mp4viewer.datasource import DataBuffer
 
 class DataBufferTest:
     def __init__(self, path):

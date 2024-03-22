@@ -1,6 +1,7 @@
 """ Console renderer """
 import sys
-from tree import Tree
+
+from mp4viewer.tree import Tree
 
 def _write(s):
     sys.stdout.write(s)

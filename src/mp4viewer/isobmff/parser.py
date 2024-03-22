@@ -1,7 +1,7 @@
 """ isobmff parser public interface """
 import traceback
 
-from datasource import DataBuffer
+from mp4viewer.datasource import DataBuffer
 from . import box, movie, fragment, flv, cenc
 from .utils import error_print
 

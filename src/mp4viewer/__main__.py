@@ -1,17 +1,15 @@
-#!/usr/bin/env python3
 """ The main entry point """
-
 import os
+import sys
 import argparse
 
-from datasource import DataBuffer
-from datasource import FileSource
-from console import ConsoleRenderer
-from json_renderer import JsonRenderer
-from tree import Tree
+from mp4viewer.tree import Tree
+from mp4viewer.datasource import FileSource, DataBuffer
+from mp4viewer.console import ConsoleRenderer
+from mp4viewer.json_renderer import JsonRenderer
 
-from isobmff.parser import IsobmffParser, getboxdesc
-from isobmff.box import Box
+from mp4viewer.isobmff.parser import IsobmffParser, getboxdesc
+from mp4viewer.isobmff.box import Box
 
 def get_box_node(box, args):
     """ Get a tree node representing the box """
@@ -37,7 +35,6 @@ def add_box(parent, box, args):
     for child in box.children:
         add_box(box_node, child, args)
     return box_node
-
 
 def get_tree_from_file(path, args):
     """ Parse the mp4 file and return a tree of boxes """
@@ -87,7 +84,7 @@ def main():
 
     if args.output_format == 'gui':
         # pylint: disable=import-outside-toplevel
-        from gui import GtkRenderer
+        from .gui import GtkRenderer
         renderer = GtkRenderer()
 
     if args.output_format == 'json':
@@ -99,6 +96,7 @@ def main():
     if args.json_path is not None and args.output_format != 'json':
         JsonRenderer(mp4_path=args.input_file, output_path=args.json_path).render(root)
 
+    return 0
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
