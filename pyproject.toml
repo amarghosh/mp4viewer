@@ -1,6 +1,6 @@
 [project]
 name = "mp4viewer"
-version = "0.1.0"
+version = "0.1.1"
 authors = [
   { name="Amarghosh Vadakkoot", email="myfirstname@gmail.com" },
 ]

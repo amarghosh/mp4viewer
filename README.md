@@ -1,4 +1,5 @@
 ![Pylint](https://github.com/amarghosh/mp4viewer/actions/workflows/pylint.yml/badge.svg)
+![PyPI - Version](https://img.shields.io/pypi/v/mp4viewer)
 
 MP4Viewer
 =========
@@ -39,10 +40,10 @@ options:
 
 ## Sample outputs:
 ### The default output on the console
-![shell output](./images/console.png)
+![shell output](https://github.com/amarghosh/mp4viewer/blob/develop/images/console.png?raw=true)
 
 ### GTK
-![window with gtk treeview](./images/gtk.png)
+![window with gtk treeview](https://github.com/amarghosh/mp4viewer/blob/develop/images/gtk.png?raw=true)
 
 MP4Viewer uses gtk in graphics mode and requires pygtk3 for viewing results in a window.
 This usually comes preinstalled with recent versions of ubuntu.
