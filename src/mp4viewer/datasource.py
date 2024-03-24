@@ -1,19 +1,22 @@
 """ Defines data buffer related classes """
+
 import os
 from typing import BinaryIO
 
+
 class FileSource:
-    """ Read isobmff data from a file """
-    def __init__(self, f:BinaryIO):
+    """Read isobmff data from a file"""
+
+    def __init__(self, f: BinaryIO):
         self.file = f
         self.size = os.fstat(f.fileno()).st_size
 
     def read(self, req_bytes):
-        """ read up to req_bytes """
+        """read up to req_bytes"""
         return self.file.read(req_bytes)
 
     def seek(self, count, pos):
-        """ wrapper around file.seek """
+        """wrapper around file.seek"""
         return self.file.seek(count, pos)
 
     def __len__(self):
@@ -25,13 +28,15 @@ class DataBuffer:
     Class represending a data buffer.
     Provides helper functions to read uint32, UTF8 strings etc from the buffer.
     """
+
     CHUNK_SIZE = 16384
+
     def __init__(self, source):
         self.source = source
 
         # Chunk of bytes loaded from the source stream for convenience.
         # This is a sub-sequence of the byte stream managed by self.source.
-        self.data = b''
+        self.data = b""
 
         # length of current `data`; this can vary across calls to readmore
         self.buf_size = 0
@@ -49,24 +54,28 @@ class DataBuffer:
         self.readmore()
 
     def reset(self):
-        """ reset everything """
+        """reset everything"""
         self.bit_position = 0
         self.stream_offset = 0
         self.buf_size = 0
         self.read_ptr = 0
-        self.data = b''
+        self.data = b""
 
     def __str__(self):
         # pylint: disable=consider-using-f-string
-        return "<datasource size %d, buf=%d readptr %d, offset %d>" %(
-                len(self.source), self.buf_size, self.read_ptr, self.stream_offset)
+        return "<datasource size %d, buf=%d readptr %d, offset %d>" % (
+            len(self.source),
+            self.buf_size,
+            self.read_ptr,
+            self.stream_offset,
+        )
 
     def current_position(self):
-        """ return the current offset of the buffer from the beginning of the `source` """
+        """return the current offset of the buffer from the beginning of the `source`"""
         return self.stream_offset + self.read_ptr
 
     def remaining_bytes(self):
-        """ Return the number of bytes remaining to read """
+        """Return the number of bytes remaining to read"""
         return len(self.source) - (self.stream_offset + self.read_ptr)
 
     def readmore(self, minimum=0):
@@ -80,19 +89,23 @@ class DataBuffer:
         remaining_bytes = self.buf_size - self.read_ptr
         if len(data):
             # print(f"Read {len(data)}")
-            self.data = b''.join([ self.data[self.read_ptr:] , data])
+            self.data = b"".join([self.data[self.read_ptr :], data])
             self.buf_size = remaining_bytes + len(data)
             self.stream_offset += self.read_ptr
             self.read_ptr = 0
             if self.buf_size < minimum:
-                raise AssertionError("Not enough data for %d bytes; read %d, remaining %d" %(
-                    minimum, len(data), self.buf_size))
+                raise AssertionError(
+                    "Not enough data for %d bytes; read %d, remaining %d"
+                    % (minimum, len(data), self.buf_size)
+                )
         else:
-            raise AssertionError("Read nothing: req %d, offset %d, read_ptr %d" %(
-                minimum, self.stream_offset, self.read_ptr))
+            raise AssertionError(
+                "Read nothing: req %d, offset %d, read_ptr %d"
+                % (minimum, self.stream_offset, self.read_ptr)
+            )
 
     def hasmore(self) -> bool:
-        """ return true if we have bytes remaining to be read from the source """
+        """return true if we have bytes remaining to be read from the source"""
         if self.read_ptr == self.buf_size:
             try:
                 self.readmore()
@@ -114,18 +127,22 @@ class DataBuffer:
 
         if remaining_bytes < length:
             # pylint: disable=consider-using-f-string
-            raise ValueError("Attempt to read beyond buffer %d %d %d" %(
-                self.read_ptr, self.buf_size, length))
+            raise ValueError(
+                "Attempt to read beyond buffer %d %d %d"
+                % (self.read_ptr, self.buf_size, length)
+            )
 
-    def peekstr(self, length, offset = 0):
-        """ read a string of `length` bytes without updating the buffer pointer """
+    def peekstr(self, length, offset=0):
+        """read a string of `length` bytes without updating the buffer pointer"""
         self.checkbuffer(length + offset)
         if self.bit_position:
             raise AssertionError(f"Not aligned: {self.bit_position}")
-        return str(self.data[self.read_ptr + offset:self.read_ptr + offset + length], 'utf-8' )
+        return str(
+            self.data[self.read_ptr + offset : self.read_ptr + offset + length], "utf-8"
+        )
 
     def readstr(self, length):
-        """ read a string of `length` bytes and update the buffer pointer """
+        """read a string of `length` bytes and update the buffer pointer"""
         s = self.peekstr(length)
         self.read_ptr += length
         return s
@@ -138,7 +155,7 @@ class DataBuffer:
         if self.bit_position:
             raise AssertionError(f"Not aligned: {self.bit_position}")
         str_bytes = bytearray()
-        s = ''
+        s = ""
         bytes_read = 0
         while self.hasmore():
             if bytes_read == max_length:
@@ -148,7 +165,7 @@ class DataBuffer:
             if not c:
                 break
             str_bytes.append(c)
-        s = str_bytes.decode('utf-8')
+        s = str_bytes.decode("utf-8")
         return s, bytes_read
 
     def peekint(self, bytecount):
@@ -165,7 +182,7 @@ class DataBuffer:
         return v
 
     def peekbits(self, bitcount):
-        """ read `bitcount` bits without moving the pointer """
+        """read `bitcount` bits without moving the pointer"""
         bytes_req = (bitcount + self.bit_position) // 8
         bytes_req += 1 if (bitcount + self.bit_position) % 8 else 0
         self.checkbuffer(bytes_req)
@@ -192,36 +209,36 @@ class DataBuffer:
         return result
 
     def readbits(self, bitcount):
-        """ read the next `bitcount` bits and return it as an integer """
+        """read the next `bitcount` bits and return it as an integer"""
         res = self.peekbits(bitcount)
         self.read_ptr += (bitcount + self.bit_position) // 8
         self.bit_position = (self.bit_position + bitcount) % 8
         return res
 
     def readbytes(self, count):
-        """ read `count` bytes from the stream and return it as a list of ints """
+        """read `count` bytes from the stream and return it as a list of ints"""
         return [self.readbyte() for i in range(count)]
 
     def readint(self, bytecount):
-        """ read an integer of `bytecount` bytes from the stream """
+        """read an integer of `bytecount` bytes from the stream"""
         v = self.peekint(bytecount)
         self.read_ptr += bytecount
         return v
 
     def readbyte(self):
-        """ read one byte from the current position and return it as an int """
+        """read one byte from the current position and return it as an int"""
         return self.readint(1)
 
     def readint16(self):
-        """ read a 16 bit integer from the current position """
+        """read a 16 bit integer from the current position"""
         return self.readint(2)
 
     def readint32(self):
-        """ read a 32 bit integer from the current position """
+        """read a 32 bit integer from the current position"""
         return self.readint(4)
 
     def readint64(self):
-        """ read a 64 bit integer from the current position """
+        """read a 64 bit integer from the current position"""
         return self.readint(8)
 
     def skipbytes(self, count):
@@ -242,8 +259,10 @@ class DataBuffer:
         if self.current_position() + count > len(self.source):
             overflow = (self.current_position() + count) - len(self)
             available_to_skip = len(self.source)
-            raise BufferError(f"{self} consumed={self.current_position()} skipping {count} "
-                    f"bytes would cause overflow {overflow} available={available_to_skip}")
+            raise BufferError(
+                f"{self} consumed={self.current_position()} skipping {count} "
+                f"bytes would cause overflow {overflow} available={available_to_skip}"
+            )
 
         self.source.seek(count - unread_loaded_bytes, os.SEEK_CUR)
         new_stream_offset = self.stream_offset + self.read_ptr + count
@@ -251,7 +270,7 @@ class DataBuffer:
         self.stream_offset = new_stream_offset
 
     def seekto(self, pos):
-        """ Move the read pointer to to `pos`, relative to the start of stream """
+        """Move the read pointer to to `pos`, relative to the start of stream"""
         self.source.seek(pos, os.SEEK_SET)
         self.reset()
         self.stream_offset = pos

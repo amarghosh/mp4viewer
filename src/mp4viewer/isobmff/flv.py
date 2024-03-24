@@ -1,10 +1,13 @@
 """ Adobe FLV format related boxes """
+
 # pylint: disable=too-many-instance-attributes
 
 from . import box
 
+
 class AdobeFragmentRandomAccess(box.FullBox):
-    """ afra """
+    """afra"""
+
     def parse(self, parse_ctx):
         super().parse(parse_ctx)
         buf = parse_ctx.buf
@@ -21,7 +24,7 @@ class AdobeFragmentRandomAccess(box.FullBox):
                 offset = buf.readint64()
             else:
                 offset = buf.readint32()
-            self.entries.append((time,offset))
+            self.entries.append((time, offset))
         self.global_entry_count = 0
         self.global_entries = []
         if self.global_entries_present:
@@ -32,31 +35,32 @@ class AdobeFragmentRandomAccess(box.FullBox):
                 eid = buf.readint32()
             else:
                 eid = buf.readint16()
-            self.global_entries.append((time,eid))
+            self.global_entries.append((time, eid))
 
     def generate_fields(self):
         super().generate_fields()
-        yield("Long IDs", self.long_ids)
-        yield("Long offsets", self.long_offsets)
-        yield("Global entries present", self.global_entries_present)
-        yield("Timescale", self.timescale)
-        yield("Entry count", self.entry_count)
+        yield ("Long IDs", self.long_ids)
+        yield ("Long offsets", self.long_offsets)
+        yield ("Global entries present", self.global_entries_present)
+        yield ("Timescale", self.timescale)
+        yield ("Entry count", self.entry_count)
         for i, e in enumerate(self.entries):
-            yield(f"  Entry {i+1}", f"time={e[0]}, offset={e[1]}")
+            yield (f"  Entry {i+1}", f"time={e[0]}, offset={e[1]}")
         if self.global_entries_present:
-            yield("Global entry count", self.global_entry_count)
+            yield ("Global entry count", self.global_entry_count)
             for i, e in enumerate(self.global_entries):
-                yield(f"  Global entry {i+1}", f"time={e[0]}, id={e[1]}")
+                yield (f"  Global entry {i+1}", f"time={e[0]}, id={e[1]}")
 
 
 class AdobeBootstrap(box.FullBox):
-    """ abst """
+    """abst"""
+
     def parse(self, parse_ctx):
         super().parse(parse_ctx)
         buf = parse_ctx.buf
         self.bootstrap_info_version = buf.readint32()
         val = buf.readbyte()
-        self.profile = (val & 0xc0) >> 6
+        self.profile = (val & 0xC0) >> 6
         self.live = val & 0x40 != 0
         self.update = val & 0x20 != 0
         self.timescale = buf.readint32()
@@ -90,15 +94,15 @@ class AdobeBootstrap(box.FullBox):
         yield ("Timescale", self.timescale)
         yield ("Current media time", self.current_media_time)
         yield ("SMPTE time code", self.smpte_time_code_offset)
-        yield ("Movie ID", self.movie_id if len(self.movie_id) else '<empty>')
+        yield ("Movie ID", self.movie_id if len(self.movie_id) else "<empty>")
         yield ("Server entry count", self.server_entry_count)
         for s in self.server_entries:
-            yield ("Server", s if len(s) else '<empty>')
+            yield ("Server", s if len(s) else "<empty>")
         yield ("Quality entry count", self.quality_entry_count)
         for q in self.quality_entries:
-            yield ("Quality", q if len(q) else '<empty>')
-        yield ("DRM data", self.drmdata if len(self.drmdata) else '<empty>')
-        yield ("Metadata", self.metadata if len(self.metadata) else '<empty>')
+            yield ("Quality", q if len(q) else "<empty>")
+        yield ("DRM data", self.drmdata if len(self.drmdata) else "<empty>")
+        yield ("Metadata", self.metadata if len(self.metadata) else "<empty>")
         yield ("Segment run table entry count", self.segment_run_table_entry_count)
         yield from self.segment_run_table_entries
         yield ("Fragment run table entry count", self.fragment_run_table_entry_count)
@@ -106,7 +110,8 @@ class AdobeBootstrap(box.FullBox):
 
 
 class AdobeSegmentRunTable(box.FullBox):
-    """ asrt """
+    """asrt"""
+
     def parse(self, parse_ctx):
         super().parse(parse_ctx)
         buf = parse_ctx.buf
@@ -125,14 +130,18 @@ class AdobeSegmentRunTable(box.FullBox):
         super().generate_fields()
         yield ("Quality entry count", self.quality_entry_count)
         for q in self.quality_url_modifiers:
-            yield ("Quality url modifier", q if len(q) else '<empty>')
+            yield ("Quality url modifier", q if len(q) else "<empty>")
         yield ("Segment entry count", self.segment_entry_count)
         for idx, e in enumerate(self.segment_entries):
-            yield (f"Entry {idx+1}", f"First segment={e[0]}, Fragments per segment={e[1]}")
+            yield (
+                f"Entry {idx+1}",
+                f"First segment={e[0]}, Fragments per segment={e[1]}",
+            )
 
 
 class AdobeFragmentRunTable(box.FullBox):
-    """ afrt """
+    """afrt"""
+
     def parse(self, parse_ctx):
         super().parse(parse_ctx)
         buf = parse_ctx.buf
@@ -150,25 +159,33 @@ class AdobeFragmentRunTable(box.FullBox):
             discontinuity_idicator = 0
             if fragment_duration == 0:
                 discontinuity_idicator = buf.readbyte()
-            self.fragment_entries.append((first_fragment, first_fragment_timestamp, \
-                    fragment_duration, discontinuity_idicator))
+            self.fragment_entries.append(
+                (
+                    first_fragment,
+                    first_fragment_timestamp,
+                    fragment_duration,
+                    discontinuity_idicator,
+                )
+            )
 
     def generate_fields(self):
         super().generate_fields()
         yield ("Timescale", self.timescale)
         yield ("Quality entry count", self.quality_entry_count)
         for q in self.quality_url_modifiers:
-            yield ("Quality url modifier", q if len(q) else '<empty>')
+            yield ("Quality url modifier", q if len(q) else "<empty>")
         yield ("Fragment entry count", self.fragment_entry_count)
         for i, e in enumerate(self.fragment_entries):
-            yield(f"Entry {i+1}",
-                    f"first fragment={e[0]}, first fragment timestamp={e[1]}, "
-                    f"fragment duration={e[2]}, discontinuity={e[3]}")
+            yield (
+                f"Entry {i+1}",
+                f"first fragment={e[0]}, first fragment timestamp={e[1]}, "
+                f"fragment duration={e[2]}, discontinuity={e[3]}",
+            )
 
 
 boxmap = {
-        'afra' : AdobeFragmentRandomAccess,
-        'abst' : AdobeBootstrap,
-        'asrt' : AdobeSegmentRunTable,
-        'afrt' : AdobeFragmentRunTable,
-    }
+    "afra": AdobeFragmentRandomAccess,
+    "abst": AdobeBootstrap,
+    "asrt": AdobeSegmentRunTable,
+    "afrt": AdobeFragmentRunTable,
+}

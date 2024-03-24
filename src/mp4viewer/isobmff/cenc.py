@@ -1,8 +1,11 @@
 """ track encryption related boxes """
+
 from . import box
 
+
 class TrackEncryptionBox(box.FullBox):
-    """ tenc """
+    """tenc"""
+
     def parse(self, parse_ctx):
         super().parse(parse_ctx)
         buf = parse_ctx.buf
@@ -11,8 +14,8 @@ class TrackEncryptionBox(box.FullBox):
             buf.skipbytes(1)
         else:
             val = buf.readbyte()
-            self.default_crypt_byte_block = (val & 0xf0) >> 4
-            self.default_skip_byte_block = val & 0x0f
+            self.default_crypt_byte_block = (val & 0xF0) >> 4
+            self.default_skip_byte_block = val & 0x0F
         self.default_is_protected = buf.readbyte() == 1
         self.default_per_sample_iv_size = buf.readbyte()
         self.default_kid = []
@@ -34,11 +37,15 @@ class TrackEncryptionBox(box.FullBox):
         yield ("Default KID", [f"{i:02x}" for i in range(self.default_kid)])
         if self.default_is_protected == 1 and self.default_per_sample_iv_size == 0:
             yield ("Default constant IV size", self.default_constant_iv_size)
-            yield ("Default constant IV", [f"{i:02x}" for i in range(self.default_constant_iv)])
+            yield (
+                "Default constant IV",
+                [f"{i:02x}" for i in range(self.default_constant_iv)],
+            )
 
 
 class ProtectionSystemSpecificHeader(box.FullBox):
-    """ pssh """
+    """pssh"""
+
     def parse(self, parse_ctx):
         super().parse(parse_ctx)
         buf = parse_ctx.buf
@@ -56,7 +63,7 @@ class ProtectionSystemSpecificHeader(box.FullBox):
 
     def generate_fields(self):
         super().generate_fields()
-        yield ("System ID", "0x" + "%x" * 16 %tuple(self.system_id))
+        yield ("System ID", "0x" + "%x" * 16 % tuple(self.system_id))
         if self.version > 0:
             yield ("KID count", self.kid_count)
             for kid in self.kids:
@@ -65,7 +72,8 @@ class ProtectionSystemSpecificHeader(box.FullBox):
 
 
 class SchemeTypeBox(box.FullBox):
-    """ schm """
+    """schm"""
+
     def parse(self, parse_ctx):
         super().parse(parse_ctx)
         buf = parse_ctx.buf
@@ -84,7 +92,8 @@ class SchemeTypeBox(box.FullBox):
 
 
 class OriginalFormatBox(box.Box):
-    """ frma """
+    """frma"""
+
     def parse(self, parse_ctx):
         super().parse(parse_ctx)
         buf = parse_ctx.buf
@@ -96,12 +105,12 @@ class OriginalFormatBox(box.Box):
 
 
 boxmap = {
-        'tenc' : TrackEncryptionBox,
-        # senc can't be used without guesswork/heroics/the creation of a 'root'
-        # box because it needs the 'tenc' box which is in the moov header,
-        # while this is in the moof header.  They do not share a parent.
-        #'senc' : SampleEncryptionBox,
-        'pssh' : ProtectionSystemSpecificHeader,
-        'schm' : SchemeTypeBox,
-        'frma' : OriginalFormatBox,
-        }
+    "tenc": TrackEncryptionBox,
+    # senc can't be used without guesswork/heroics/the creation of a 'root'
+    # box because it needs the 'tenc' box which is in the moov header,
+    # while this is in the moof header.  They do not share a parent.
+    # 'senc' : SampleEncryptionBox,
+    "pssh": ProtectionSystemSpecificHeader,
+    "schm": SchemeTypeBox,
+    "frma": OriginalFormatBox,
+}

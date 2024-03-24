@@ -1,4 +1,5 @@
 """ Movie and track related boxes """
+
 # pylint: disable=too-many-instance-attributes
 
 from . import box
@@ -9,7 +10,8 @@ from .utils import error_print
 
 
 class MovieHeader(box.FullBox):
-    """ mvhd """
+    """mvhd"""
+
     def parse(self, parse_ctx):
         buf = parse_ctx.buf
         super().parse(parse_ctx)
@@ -32,12 +34,22 @@ class MovieHeader(box.FullBox):
 
     def generate_fields(self):
         super().generate_fields()
-        yield ("creation time", self.creation_time,
-                get_utc_from_seconds_since_1904(self.creation_time).ctime())
-        yield ("modification time", self.creation_time,
-                get_utc_from_seconds_since_1904(self.modification_time).ctime())
+        yield (
+            "creation time",
+            self.creation_time,
+            get_utc_from_seconds_since_1904(self.creation_time).ctime(),
+        )
+        yield (
+            "modification time",
+            self.creation_time,
+            get_utc_from_seconds_since_1904(self.modification_time).ctime(),
+        )
         yield ("timescale", self.timescale)
-        yield ("duration", self.duration, stringify_duration(self.duration / self.timescale))
+        yield (
+            "duration",
+            self.duration,
+            stringify_duration(self.duration / self.timescale),
+        )
         yield ("rate", f"0x{self.rate:08X}")
         yield ("volume", f"0x{self.volume:04X}")
         yield ("matrix", self.matrix)
@@ -45,7 +57,8 @@ class MovieHeader(box.FullBox):
 
 
 class TrackHeader(box.FullBox):
-    """ tkhd """
+    """tkhd"""
+
     def parse(self, parse_ctx):
         buf = parse_ctx.buf
         super().parse(parse_ctx)
@@ -72,17 +85,27 @@ class TrackHeader(box.FullBox):
 
     def generate_fields(self):
         super().generate_fields()
-        yield ("creation time", self.creation_time,
-                get_utc_from_seconds_since_1904(self.creation_time).ctime())
-        yield ("modification time", self.modification_time,
-                get_utc_from_seconds_since_1904(self.modification_time).ctime())
+        yield (
+            "creation time",
+            self.creation_time,
+            get_utc_from_seconds_since_1904(self.creation_time).ctime(),
+        )
+        yield (
+            "modification time",
+            self.modification_time,
+            get_utc_from_seconds_since_1904(self.modification_time).ctime(),
+        )
         yield ("track id", self.track_id)
-        mvhd = self.find_descendant_of_ancestor('moov', 'mvhd')
+        mvhd = self.find_descendant_of_ancestor("moov", "mvhd")
         if mvhd is None:
             error_print("Failed to find movie header to decode track duration")
             yield ("duration", self.duration)
         else:
-            yield ("duration", self.duration, stringify_duration(self.duration/mvhd.timescale))
+            yield (
+                "duration",
+                self.duration,
+                stringify_duration(self.duration / mvhd.timescale),
+            )
         yield ("layer", f"0x{self.layer:04X}")
         yield ("alternate group", f"0x{self.altgroup:04X}")
         yield ("volume", f"0x{self.volume:04X}")
@@ -92,7 +115,8 @@ class TrackHeader(box.FullBox):
 
 
 class MediaHeader(box.FullBox):
-    """ mdhd """
+    """mdhd"""
+
     def parse(self, parse_ctx):
         buf = parse_ctx.buf
         super().parse(parse_ctx)
@@ -111,23 +135,34 @@ class MediaHeader(box.FullBox):
 
     def generate_fields(self):
         super().generate_fields()
-        yield ("creation time", self.creation_time,
-                get_utc_from_seconds_since_1904(self.creation_time).ctime())
-        yield ("modification time", self.modification_time,
-                get_utc_from_seconds_since_1904(self.modification_time).ctime())
+        yield (
+            "creation time",
+            self.creation_time,
+            get_utc_from_seconds_since_1904(self.creation_time).ctime(),
+        )
+        yield (
+            "modification time",
+            self.modification_time,
+            get_utc_from_seconds_since_1904(self.modification_time).ctime(),
+        )
         yield ("timescale", self.timescale)
-        yield ("duration", self.duration, stringify_duration(self.duration / self.timescale))
+        yield (
+            "duration",
+            self.duration,
+            stringify_duration(self.duration / self.timescale),
+        )
         yield ("language", self.language, parse_iso639_2_15bit(self.language))
 
 
 class VideoMediaHeader(box.FullBox):
-    """ vmhd """
+    """vmhd"""
+
     def parse(self, parse_ctx):
         buf = parse_ctx.buf
         super().parse(parse_ctx)
         self.graphicsmode = buf.readint16()
         self.opcolor = []
-        for _ in range(0,3):
+        for _ in range(0, 3):
             self.opcolor.append(buf.readint16())
 
     def generate_fields(self):
@@ -137,7 +172,8 @@ class VideoMediaHeader(box.FullBox):
 
 
 class SoundMediaHeader(box.FullBox):
-    """ smhd """
+    """smhd"""
+
     def parse(self, parse_ctx):
         buf = parse_ctx.buf
         super().parse(parse_ctx)
@@ -150,7 +186,8 @@ class SoundMediaHeader(box.FullBox):
 
 
 class HintMediaHeader(box.FullBox):
-    """ hmhd """
+    """hmhd"""
+
     def parse(self, parse_ctx):
         buf = parse_ctx.buf
         super().parse(parse_ctx)
@@ -166,8 +203,10 @@ class HintMediaHeader(box.FullBox):
         yield ("Max bitrate", self.max_bitrate)
         yield ("Average bitrate", self.avg_bitrate)
 
+
 class HandlerBox(box.FullBox):
-    """ hdlr """
+    """hdlr"""
+
     def parse(self, parse_ctx):
         buf = parse_ctx.buf
         super().parse(parse_ctx)
@@ -180,11 +219,12 @@ class HandlerBox(box.FullBox):
     def generate_fields(self):
         super().generate_fields()
         yield ("handler", self.handler)
-        yield ("name", self.name if len(self.name) else '<empty>')
+        yield ("name", self.name if len(self.name) else "<empty>")
 
 
 class SampleEntry(box.Box):
-    """ base type for various sample entry classes """
+    """base type for various sample entry classes"""
+
     def parse(self, parse_ctx):
         buf = parse_ctx.buf
         super().parse(parse_ctx)
@@ -198,14 +238,16 @@ class SampleEntry(box.Box):
 
 
 class HintSampleEntry(SampleEntry):
-    """ ???? (inside sample description when handler=hint) """
+    """???? (inside sample description when handler=hint)"""
+
     def parse(self, parse_ctx):
         buf = parse_ctx.buf
         buf.skipbytes(self.size - self.consumed_bytes)
 
 
 class VisualSampleEntry(SampleEntry):
-    """ possibly avc1 (inside sample description when handler=vide) """
+    """possibly avc1 (inside sample description when handler=vide)"""
+
     def parse(self, parse_ctx):
         buf = parse_ctx.buf
         super().parse(parse_ctx)
@@ -217,7 +259,9 @@ class VisualSampleEntry(SampleEntry):
         buf.skipbytes(4)
         self.frame_count = buf.readint16()
         compressor_name_length = buf.readbyte()
-        self.compressor_name = buf.readstr(compressor_name_length) if compressor_name_length else ''
+        self.compressor_name = (
+            buf.readstr(compressor_name_length) if compressor_name_length else ""
+        )
         buf.skipbytes(32 - compressor_name_length - 1)
         self.depth = buf.readint16()
         buf.skipbytes(2)
@@ -235,7 +279,8 @@ class VisualSampleEntry(SampleEntry):
 
 
 class AudioSampleEntry(SampleEntry):
-    """ possibly mp4a (inside sample description when handler=soun) """
+    """possibly mp4a (inside sample description when handler=soun)"""
+
     def parse(self, parse_ctx):
         buf = parse_ctx.buf
         super().parse(parse_ctx)
@@ -261,25 +306,29 @@ class AudioSampleEntry(SampleEntry):
         super().generate_fields()
         yield ("channel count", self.channel_count)
         yield ("sample size", self.sample_size)
-        yield ("sample rate", self.sample_rate,
-                f"{self.sample_rate >> 16}, {self.sample_rate & 0xFFFF}")
+        yield (
+            "sample rate",
+            self.sample_rate,
+            f"{self.sample_rate >> 16}, {self.sample_rate & 0xFFFF}",
+        )
 
 
 class SampleDescription(box.FullBox):
-    """ stsd """
+    """stsd"""
+
     def parse(self, parse_ctx):
         buf = parse_ctx.buf
         super().parse(parse_ctx)
-        media = self.find_ancestor('mdia')
-        hdlr = media.find_child('hdlr') if media else None
+        media = self.find_ancestor("mdia")
+        hdlr = media.find_child("hdlr") if media else None
         handler = hdlr.handler if hdlr else None
         self.entry_count = buf.readint32()
         for _ in range(self.entry_count):
-            if handler == 'soun':
+            if handler == "soun":
                 self.children.append(AudioSampleEntry(parse_ctx))
-            elif handler == 'vide':
+            elif handler == "vide":
                 self.children.append(VisualSampleEntry(parse_ctx))
-            elif handler == 'hint':
+            elif handler == "hint":
                 self.children.append(HintSampleEntry(parse_ctx))
             else:
                 entry = box.Box(parse_ctx)
@@ -294,7 +343,8 @@ class SampleDescription(box.FullBox):
 
 
 class DataEntryUrnBox(box.FullBox):
-    """ 'urn ' """
+    """'urn '"""
+
     def parse(self, parse_ctx):
         buf = parse_ctx.buf
         super().parse(parse_ctx)
@@ -308,7 +358,8 @@ class DataEntryUrnBox(box.FullBox):
 
 
 class DataEntryUrlBox(box.FullBox):
-    """ 'url ' """
+    """'url '"""
+
     def parse(self, parse_ctx):
         buf = parse_ctx.buf
         super().parse(parse_ctx)
@@ -320,7 +371,8 @@ class DataEntryUrlBox(box.FullBox):
 
 
 class DataReferenceBox(box.FullBox):
-    """ dref """
+    """dref"""
+
     def parse(self, parse_ctx):
         buf = parse_ctx.buf
         super().parse(parse_ctx)
@@ -335,7 +387,8 @@ class DataReferenceBox(box.FullBox):
 
 
 class TimeToSampleBox(box.FullBox):
-    """ stts """
+    """stts"""
+
     def parse(self, parse_ctx):
         buf = parse_ctx.buf
         super().parse(parse_ctx)
@@ -355,7 +408,8 @@ class TimeToSampleBox(box.FullBox):
 
 
 class SampleToChunkBox(box.FullBox):
-    """ stsc """
+    """stsc"""
+
     def parse(self, parse_ctx):
         buf = parse_ctx.buf
         super().parse(parse_ctx)
@@ -371,8 +425,10 @@ class SampleToChunkBox(box.FullBox):
         super().generate_fields()
         yield ("entry count", self.entry_count)
         if self.entry_count > 10:
-            yield ("chunk data hidden",
-                    f"{self.entry_count} entries can be toggled in movies.py/SampleToChunkBox")
+            yield (
+                "chunk data hidden",
+                f"{self.entry_count} entries can be toggled in movies.py/SampleToChunkBox",
+            )
         else:
             for entry in self.entries:
                 yield ("first chunk", entry[0])
@@ -381,7 +437,8 @@ class SampleToChunkBox(box.FullBox):
 
 
 class ChunkOffsetBox(box.FullBox):
-    """ stco """
+    """stco"""
+
     def parse(self, parse_ctx):
         buf = parse_ctx.buf
         super().parse(parse_ctx)
@@ -395,7 +452,8 @@ class ChunkOffsetBox(box.FullBox):
 
 
 class SyncSampleBox(box.FullBox):
-    """ stss """
+    """stss"""
+
     def parse(self, parse_ctx):
         buf = parse_ctx.buf
         super().parse(parse_ctx)
@@ -409,7 +467,8 @@ class SyncSampleBox(box.FullBox):
 
 
 class SampleSizeBox(box.FullBox):
-    """ stsz """
+    """stsz"""
+
     def parse(self, parse_ctx):
         buf = parse_ctx.buf
         super().parse(parse_ctx)
@@ -429,7 +488,8 @@ class SampleSizeBox(box.FullBox):
 
 
 class CompactSampleSizeBox(box.FullBox):
-    """ stz2 """
+    """stz2"""
+
     def parse(self, parse_ctx):
         buf = parse_ctx.buf
         super().parse(parse_ctx)
@@ -449,7 +509,8 @@ class CompactSampleSizeBox(box.FullBox):
 
 
 class MovieExtendsHeader(box.FullBox):
-    """ mehd """
+    """mehd"""
+
     def parse(self, parse_ctx):
         buf = parse_ctx.buf
         super().parse(parse_ctx)
@@ -462,8 +523,10 @@ class MovieExtendsHeader(box.FullBox):
         super().generate_fields()
         yield ("Fragment duration", self.fragment_duration)
 
+
 class TrackExtendsBox(box.FullBox):
-    """ trex """
+    """trex"""
+
     def parse(self, parse_ctx):
         buf = parse_ctx.buf
         super().parse(parse_ctx)
@@ -476,14 +539,18 @@ class TrackExtendsBox(box.FullBox):
     def generate_fields(self):
         super().generate_fields()
         yield ("Track ID", self.track_id)
-        yield ("Default sample description index", self.default_sample_description_index)
+        yield (
+            "Default sample description index",
+            self.default_sample_description_index,
+        )
         yield ("Default sample duration", self.default_sample_duration)
         yield ("Default sample size", self.default_sample_size)
         yield ("Default sample flags", self.default_sample_flags)
 
 
 class AvcCBox(box.Box):
-    """ avcC """
+    """avcC"""
+
     def parse(self, parse_ctx):
         buf = parse_ctx.buf
         super().parse(parse_ctx)
@@ -519,7 +586,6 @@ class AvcCBox(box.Box):
         else:
             self.chroma_format = -1
 
-
         self.has_children = False
 
     def generate_fields(self):
@@ -536,31 +602,31 @@ class AvcCBox(box.Box):
         for pps in self.pps:
             yield ("PPS", pps)
         if self.chroma_format != -1:
-            yield('chroma format', self.chroma_format)
-            yield('bit depth luma minus 8', self.bit_depth_luma_minus_8)
-            yield('bit depth chroma minus 8', self.bit_depth_chroma_minus_8)
-            yield('sps ext byte count', self.sps_ext_len)
+            yield ("chroma format", self.chroma_format)
+            yield ("bit depth luma minus 8", self.bit_depth_luma_minus_8)
+            yield ("bit depth chroma minus 8", self.bit_depth_chroma_minus_8)
+            yield ("sps ext byte count", self.sps_ext_len)
 
 
 boxmap = {
-    'mvhd' : MovieHeader,
-    'tkhd' : TrackHeader,
-    'mdhd' : MediaHeader,
-    'vmhd' : VideoMediaHeader,
-    'smhd' : SoundMediaHeader,
-    'hmhd' : HintMediaHeader,
-    'hdlr' : HandlerBox,
-    'stsd' : SampleDescription,
-    'dref' : DataReferenceBox,
-    'stts' : TimeToSampleBox,
-    'stsc' : SampleToChunkBox,
-    'stco' : ChunkOffsetBox,
-    'stss' : SyncSampleBox,
-    'stsz' : SampleSizeBox,
-    'stz2' : CompactSampleSizeBox,
-    'url ' : DataEntryUrlBox,
-    'urn ' : DataEntryUrnBox,
-    'mehd' : MovieExtendsHeader,
-    'trex' : TrackExtendsBox,
-    'avcC' : AvcCBox,
-    }
+    "mvhd": MovieHeader,
+    "tkhd": TrackHeader,
+    "mdhd": MediaHeader,
+    "vmhd": VideoMediaHeader,
+    "smhd": SoundMediaHeader,
+    "hmhd": HintMediaHeader,
+    "hdlr": HandlerBox,
+    "stsd": SampleDescription,
+    "dref": DataReferenceBox,
+    "stts": TimeToSampleBox,
+    "stsc": SampleToChunkBox,
+    "stco": ChunkOffsetBox,
+    "stss": SyncSampleBox,
+    "stsz": SampleSizeBox,
+    "stz2": CompactSampleSizeBox,
+    "url ": DataEntryUrlBox,
+    "urn ": DataEntryUrnBox,
+    "mehd": MovieExtendsHeader,
+    "trex": TrackExtendsBox,
+    "avcC": AvcCBox,
+}
