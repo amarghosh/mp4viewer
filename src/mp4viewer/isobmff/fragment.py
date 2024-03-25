@@ -1,10 +1,13 @@
 """ movie fragment related boxes """
+
 # pylint: disable=too-many-instance-attributes
 
 from . import box
 
+
 class MovieFragmentHeader(box.FullBox):
-    """ mfhd """
+    """mfhd"""
+
     def parse(self, parse_ctx):
         buf = parse_ctx.buf
         super().parse(parse_ctx)
@@ -16,7 +19,8 @@ class MovieFragmentHeader(box.FullBox):
 
 
 class TrackFragmentHeader(box.FullBox):
-    """ tfhd """
+    """tfhd"""
+
     def parse(self, parse_ctx):
         buf = parse_ctx.buf
         super().parse(parse_ctx)
@@ -38,21 +42,22 @@ class TrackFragmentHeader(box.FullBox):
         super().generate_fields()
         yield ("Track id", self.track_id)
         if self.flags & 0x000001:
-            yield("Base data offset", self.base_data_offset)
+            yield ("Base data offset", self.base_data_offset)
         if self.flags & 0x000002:
-            yield("Sample description index", self.sample_description_index)
+            yield ("Sample description index", self.sample_description_index)
         if self.flags & 0x000008:
-            yield("Default sample duration", self.default_sample_duration)
+            yield ("Default sample duration", self.default_sample_duration)
         if self.flags & 0x000010:
-            yield("Default sample size", self.default_sample_size)
+            yield ("Default sample size", self.default_sample_size)
         if self.flags & 0x000020:
-            yield("Default sample flags", f"{self.default_sample_flags:08x}")
-        yield("Duration is empty", self.duration_is_empty)
-        yield("Default base is moof", self.default_base_is_moof)
+            yield ("Default sample flags", f"{self.default_sample_flags:08x}")
+        yield ("Duration is empty", self.duration_is_empty)
+        yield ("Default base is moof", self.default_base_is_moof)
 
 
 class TrackFragmentRun(box.FullBox):
-    """ trun """
+    """trun"""
+
     def parse(self, parse_ctx):
         buf = parse_ctx.buf
         super().parse(parse_ctx)
@@ -77,19 +82,19 @@ class TrackFragmentRun(box.FullBox):
                 if self.version == 0:
                     off = buf.readint32()
                 else:
-                    #signed, so do the two's complement
+                    # signed, so do the two's complement
                     off = buf.readint32()
                     if off & 0x80000000:
-                        off = -1 * ((off^0xffffffff) + 1)
-            self.samples.append((dur,size,flags,off))
+                        off = -1 * ((off ^ 0xFFFFFFFF) + 1)
+            self.samples.append((dur, size, flags, off))
 
     def generate_fields(self):
         super().generate_fields()
-        yield('Sample count', self.sample_count)
+        yield ("Sample count", self.sample_count)
         if self.flags & 0x000001:
-            yield('Data offset', self.data_offset)
+            yield ("Data offset", self.data_offset)
         if self.flags & 0x000004:
-            yield('First sample flags', f"{self.first_sample_flags:08x}")
+            yield ("First sample flags", f"{self.first_sample_flags:08x}")
         i = 0
         for s in self.samples:
             i += 1
@@ -102,11 +107,12 @@ class TrackFragmentRun(box.FullBox):
                 vals.append(f"flags=0x{s[2]:08x}")
             if self.flags & 0x000800:
                 vals.append(f"compositional time offset={s[3]}")
-            yield (f'  Sample {i}', ', '.join(vals))
+            yield (f"  Sample {i}", ", ".join(vals))
 
 
 class SampleAuxInfoSizes(box.FullBox):
-    """ saiz """
+    """saiz"""
+
     def parse(self, parse_ctx):
         buf = parse_ctx.buf
         super().parse(parse_ctx)
@@ -123,17 +129,18 @@ class SampleAuxInfoSizes(box.FullBox):
     def generate_fields(self):
         super().generate_fields()
         if self.flags & 1:
-            yield("Aux info type", self.aux_info_type)
-            yield("Aux info type parameter", self.aux_info_type_parameter)
+            yield ("Aux info type", self.aux_info_type)
+            yield ("Aux info type parameter", self.aux_info_type_parameter)
         if self.default_sample_info_size:
             yield ("Default sample info size", self.default_sample_info_size)
         else:
             for sample in self.samples:
-                yield("  Sample info size", sample)
+                yield ("  Sample info size", sample)
 
 
 class SampleAuxInfoOffsets(box.FullBox):
-    """ saio """
+    """saio"""
+
     def parse(self, parse_ctx):
         buf = parse_ctx.buf
         super().parse(parse_ctx)
@@ -152,15 +159,16 @@ class SampleAuxInfoOffsets(box.FullBox):
     def generate_fields(self):
         super().generate_fields()
         if self.flags & 1:
-            yield("Aux info type", self.aux_info_type)
-            yield("Aux info type parameter", self.aux_info_type_parameter)
-        yield("Entry Count", self.entry_count)
+            yield ("Aux info type", self.aux_info_type)
+            yield ("Aux info type parameter", self.aux_info_type_parameter)
+        yield ("Entry Count", self.entry_count)
         for offset in self.offsets:
-            yield("  Offset", offset)
+            yield ("  Offset", offset)
 
 
 class TrackFragmentDecodeTime(box.FullBox):
-    """ tfdt """
+    """tfdt"""
+
     def parse(self, parse_ctx):
         buf = parse_ctx.buf
         super().parse(parse_ctx)
@@ -182,7 +190,8 @@ class SegmentType(box.FileType):
 
 
 class SegmentIndexBox(box.FullBox):
-    """ sidx """
+    """sidx"""
+
     def parse(self, parse_ctx):
         buf = parse_ctx.buf
         super().parse(parse_ctx)
@@ -207,33 +216,43 @@ class SegmentIndexBox(box.FullBox):
             sap_type = (val & 0x70000000) >> 28
             sap_delta_time = val & 0x0FFFFFFF
             self.references.append(
-                    (ref_type, ref_size, ref_duration,
-                        starts_with_sap, sap_type, sap_delta_time))
+                (
+                    ref_type,
+                    ref_size,
+                    ref_duration,
+                    starts_with_sap,
+                    sap_type,
+                    sap_delta_time,
+                )
+            )
 
     def generate_fields(self):
         # pylint: disable=consider-using-f-string
         super().generate_fields()
-        yield('Reference ID', self.reference_id)
-        yield('Timescale', self.timescale)
-        yield('Earliest presentation time', self.earliest_presentation_time)
-        yield('First offset', self.first_offset)
-        yield('Reference count', self.reference_count)
+        yield ("Reference ID", self.reference_id)
+        yield ("Timescale", self.timescale)
+        yield ("Earliest presentation time", self.earliest_presentation_time)
+        yield ("First offset", self.first_offset)
+        yield ("Reference count", self.reference_count)
         i = 0
         for ref in self.references:
             i += 1
-            yield(f'  Reference {i}', f'type={ref[0]}, size={ref[1]}, duration={ref[2]}, ' \
-                    f'starts with SAP={ref[3]}, SAP type={ref[4]}, SAP delta time={ref[5]}')
+            yield (
+                f"  Reference {i}",
+                f"type={ref[0]}, size={ref[1]}, duration={ref[2]}, "
+                f"starts with SAP={ref[3]}, SAP type={ref[4]}, SAP delta time={ref[5]}",
+            )
 
 
 boxmap = {
-        #'mfra' : MovieFragmentRandomAccessBox
-        'mfhd' : MovieFragmentHeader,
-        'tfhd' : TrackFragmentHeader,
-        'trun' : TrackFragmentRun,
-        'saiz' : SampleAuxInfoSizes,
-        'saio' : SampleAuxInfoOffsets,
-        'tfdt' : TrackFragmentDecodeTime,
-        'styp' : SegmentType,
-        'sidx' : SegmentIndexBox,
-        #'ssix' : SubsegmentIndexBox,
-    }
+    # 'mfra' : MovieFragmentRandomAccessBox
+    "mfhd": MovieFragmentHeader,
+    "tfhd": TrackFragmentHeader,
+    "trun": TrackFragmentRun,
+    "saiz": SampleAuxInfoSizes,
+    "saio": SampleAuxInfoOffsets,
+    "tfdt": TrackFragmentDecodeTime,
+    "styp": SegmentType,
+    "sidx": SegmentIndexBox,
+    # 'ssix' : SubsegmentIndexBox,
+}

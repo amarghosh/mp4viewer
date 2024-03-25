@@ -3,13 +3,14 @@
 
 from mp4viewer.datasource import DataBuffer
 
+
 class DataBufferTest:
     def __init__(self, path):
         self.path = path
         self.data_buffer = None
 
     def run(self):
-        with open(self.path, 'rb') as f:
+        with open(self.path, "rb") as f:
             self.data_buffer = DataBuffer(f)
 
             actual = self.data_buffer.readint32()
@@ -43,8 +44,12 @@ class DataBufferTest:
         assert actual == value, f"Expected 0x{value:X}, got 0x{actual:X}"
 
 
-if __name__ == '__main__':
+def test_datasource():
     # The file is a sequence of 0xA5 bytes
-    dbt = DataBufferTest('tests/1.dat')
+    dbt = DataBufferTest("tests/1.dat")
     dbt.run()
     print("Success")
+
+
+if __name__ == "__main__":
+    test_datasource()
