@@ -14,7 +14,7 @@ class MovieFragmentHeader(box.FullBox):
         self.sequence_number = buf.readint32()
 
     def generate_fields(self):
-        super().generate_fields()
+        yield from super().generate_fields()
         yield ("Sequence number", self.sequence_number)
 
 
@@ -39,7 +39,7 @@ class TrackFragmentHeader(box.FullBox):
         self.default_base_is_moof = self.flags & 0x020000 != 0
 
     def generate_fields(self):
-        super().generate_fields()
+        yield from super().generate_fields()
         yield ("Track id", self.track_id)
         if self.flags & 0x000001:
             yield ("Base data offset", self.base_data_offset)
@@ -89,7 +89,7 @@ class TrackFragmentRun(box.FullBox):
             self.samples.append((dur, size, flags, off))
 
     def generate_fields(self):
-        super().generate_fields()
+        yield from super().generate_fields()
         yield ("Sample count", self.sample_count)
         if self.flags & 0x000001:
             yield ("Data offset", self.data_offset)
@@ -127,7 +127,7 @@ class SampleAuxInfoSizes(box.FullBox):
                 self.samples.append(buf.readbyte())
 
     def generate_fields(self):
-        super().generate_fields()
+        yield from super().generate_fields()
         if self.flags & 1:
             yield ("Aux info type", self.aux_info_type)
             yield ("Aux info type parameter", self.aux_info_type_parameter)
@@ -157,7 +157,7 @@ class SampleAuxInfoOffsets(box.FullBox):
                 self.offsets.append(buf.readint64())
 
     def generate_fields(self):
-        super().generate_fields()
+        yield from super().generate_fields()
         if self.flags & 1:
             yield ("Aux info type", self.aux_info_type)
             yield ("Aux info type parameter", self.aux_info_type_parameter)
@@ -178,7 +178,7 @@ class TrackFragmentDecodeTime(box.FullBox):
             self.decode_time = buf.readint32()
 
     def generate_fields(self):
-        super().generate_fields()
+        yield from super().generate_fields()
         yield ("Base media decode time", self.decode_time)
 
 
@@ -228,7 +228,7 @@ class SegmentIndexBox(box.FullBox):
 
     def generate_fields(self):
         # pylint: disable=consider-using-f-string
-        super().generate_fields()
+        yield from super().generate_fields()
         yield ("Reference ID", self.reference_id)
         yield ("Timescale", self.timescale)
         yield ("Earliest presentation time", self.earliest_presentation_time)

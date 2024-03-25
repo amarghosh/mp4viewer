@@ -38,7 +38,7 @@ class AdobeFragmentRandomAccess(box.FullBox):
             self.global_entries.append((time, eid))
 
     def generate_fields(self):
-        super().generate_fields()
+        yield from super().generate_fields()
         yield ("Long IDs", self.long_ids)
         yield ("Long offsets", self.long_offsets)
         yield ("Global entries present", self.global_entries_present)
@@ -87,7 +87,7 @@ class AdobeBootstrap(box.FullBox):
             self.fragment_run_table_entries.append(AdobeFragmentRunTable(buf))
 
     def generate_fields(self):
-        super().generate_fields()
+        yield from super().generate_fields()
         yield ("Profile", self.profile)
         yield ("Live", self.live)
         yield ("Update", self.update)
@@ -127,7 +127,7 @@ class AdobeSegmentRunTable(box.FullBox):
             self.segment_entries.append((first_segment, fragments_per_segment))
 
     def generate_fields(self):
-        super().generate_fields()
+        yield from super().generate_fields()
         yield ("Quality entry count", self.quality_entry_count)
         for q in self.quality_url_modifiers:
             yield ("Quality url modifier", q if len(q) else "<empty>")
@@ -169,7 +169,7 @@ class AdobeFragmentRunTable(box.FullBox):
             )
 
     def generate_fields(self):
-        super().generate_fields()
+        yield from super().generate_fields()
         yield ("Timescale", self.timescale)
         yield ("Quality entry count", self.quality_entry_count)
         for q in self.quality_url_modifiers:

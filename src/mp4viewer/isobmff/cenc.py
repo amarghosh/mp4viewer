@@ -28,7 +28,7 @@ class TrackEncryptionBox(box.FullBox):
                 self.default_constant_iv.append(buf.readbyte())
 
     def generate_fields(self):
-        super().generate_fields()
+        yield from super().generate_fields()
         if self.version != 0:
             yield ("Default crypt byte block", self.default_crypt_byte_block)
             yield ("Default skip byte block", self.default_skip_byte_block)
@@ -62,7 +62,7 @@ class ProtectionSystemSpecificHeader(box.FullBox):
         buf.skipbytes(self.data_size)
 
     def generate_fields(self):
-        super().generate_fields()
+        yield from super().generate_fields()
         yield ("System ID", "0x" + "%x" * 16 % tuple(self.system_id))
         if self.version > 0:
             yield ("KID count", self.kid_count)
@@ -84,7 +84,7 @@ class SchemeTypeBox(box.FullBox):
             self.scheme_uri = buf.read_cstring(self.size - self.consumed_bytes)[0]
 
     def generate_fields(self):
-        super().generate_fields()
+        yield from super().generate_fields()
         yield ("Scheme type", self.scheme_type)
         yield ("Scheme version", f"0x{self.scheme_version:x}")
         if self.flags & 0x000001:
@@ -100,7 +100,7 @@ class OriginalFormatBox(box.Box):
         self.data_format = buf.readstr(4)
 
     def generate_fields(self):
-        super().generate_fields()
+        yield from super().generate_fields()
         yield ("Original format", self.data_format)
 
 

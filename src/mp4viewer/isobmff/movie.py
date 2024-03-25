@@ -33,7 +33,7 @@ class MovieHeader(box.FullBox):
         self.next_track_id = buf.readint32()
 
     def generate_fields(self):
-        super().generate_fields()
+        yield from super().generate_fields()
         yield (
             "creation time",
             self.creation_time,
@@ -84,7 +84,7 @@ class TrackHeader(box.FullBox):
         self.height = buf.readint32()
 
     def generate_fields(self):
-        super().generate_fields()
+        yield from super().generate_fields()
         yield (
             "creation time",
             self.creation_time,
@@ -134,7 +134,7 @@ class MediaHeader(box.FullBox):
         buf.skipbytes(2)
 
     def generate_fields(self):
-        super().generate_fields()
+        yield from super().generate_fields()
         yield (
             "creation time",
             self.creation_time,
@@ -166,7 +166,7 @@ class VideoMediaHeader(box.FullBox):
             self.opcolor.append(buf.readint16())
 
     def generate_fields(self):
-        super().generate_fields()
+        yield from super().generate_fields()
         yield ("graphics mode", self.graphicsmode)
         yield ("opcolor", self.opcolor)
 
@@ -181,7 +181,7 @@ class SoundMediaHeader(box.FullBox):
         buf.skipbytes(2)
 
     def generate_fields(self):
-        super().generate_fields()
+        yield from super().generate_fields()
         yield ("balance", self.balance)
 
 
@@ -197,7 +197,7 @@ class HintMediaHeader(box.FullBox):
         self.avg_bitrate = buf.readint16()
 
     def generate_fields(self):
-        super().generate_fields()
+        yield from super().generate_fields()
         yield ("Max PDU size", self.max_pdu_size)
         yield ("Average PDU size", self.avg_pdu_size)
         yield ("Max bitrate", self.max_bitrate)
@@ -217,7 +217,7 @@ class HandlerBox(box.FullBox):
         self.name = buf.read_cstring(self.size - self.consumed_bytes)[0]
 
     def generate_fields(self):
-        super().generate_fields()
+        yield from super().generate_fields()
         yield ("handler", self.handler)
         yield ("name", self.name if len(self.name) else "<empty>")
 
@@ -233,7 +233,7 @@ class SampleEntry(box.Box):
         self.consumed_bytes += 8
 
     def generate_fields(self):
-        super().generate_fields()
+        yield from super().generate_fields()
         yield ("data reference index", self.data_ref_index)
 
 
@@ -268,7 +268,7 @@ class VisualSampleEntry(SampleEntry):
         self.has_children = True
 
     def generate_fields(self):
-        super().generate_fields()
+        yield from super().generate_fields()
         yield ("width", self.width)
         yield ("height", self.height)
         yield ("horizontal resolution", f"0x{self.hori_resolution:08X}")
@@ -303,7 +303,7 @@ class AudioSampleEntry(SampleEntry):
         self.has_children = True
 
     def generate_fields(self):
-        super().generate_fields()
+        yield from super().generate_fields()
         yield ("channel count", self.channel_count)
         yield ("sample size", self.sample_size)
         yield (
@@ -338,7 +338,7 @@ class SampleDescription(box.FullBox):
             self.has_children = True
 
     def generate_fields(self):
-        super().generate_fields()
+        yield from super().generate_fields()
         yield ("entry count", self.entry_count)
 
 
@@ -352,7 +352,7 @@ class DataEntryUrnBox(box.FullBox):
         self.location = buf.read_cstring()[0]
 
     def generate_fields(self):
-        super().generate_fields()
+        yield from super().generate_fields()
         yield ("name", self.name)
         yield ("location", self.location)
 
@@ -366,7 +366,7 @@ class DataEntryUrlBox(box.FullBox):
         self.location = buf.read_cstring(self.size - self.consumed_bytes)[0]
 
     def generate_fields(self):
-        super().generate_fields()
+        yield from super().generate_fields()
         yield ("location", self.location)
 
 
@@ -382,7 +382,7 @@ class DataReferenceBox(box.FullBox):
             self.children.append(parse_ctx.getnextbox(self))
 
     def generate_fields(self):
-        super().generate_fields()
+        yield from super().generate_fields()
         yield ("entry count", self.entry_count)
 
 
@@ -400,7 +400,7 @@ class TimeToSampleBox(box.FullBox):
             self.entries.append((count, delta))
 
     def generate_fields(self):
-        super().generate_fields()
+        yield from super().generate_fields()
         yield ("entry count", self.entry_count)
         for entry in self.entries:
             yield ("sample count", entry[0])
@@ -422,7 +422,7 @@ class SampleToChunkBox(box.FullBox):
             self.entries.append((first, samples_per_chunk, sdix))
 
     def generate_fields(self):
-        super().generate_fields()
+        yield from super().generate_fields()
         yield ("entry count", self.entry_count)
         if self.entry_count > 10:
             yield (
@@ -446,7 +446,7 @@ class ChunkOffsetBox(box.FullBox):
         self.entries = [buf.readint32() for i in range(self.entry_count)]
 
     def generate_fields(self):
-        super().generate_fields()
+        yield from super().generate_fields()
         yield ("entry count", self.entry_count)
         yield ("chunk offsets", self.entries)
 
@@ -461,7 +461,7 @@ class SyncSampleBox(box.FullBox):
         self.entries = [buf.readint32() for i in range(self.entry_count)]
 
     def generate_fields(self):
-        super().generate_fields()
+        yield from super().generate_fields()
         yield ("entry count", self.entry_count)
         yield ("sample numbers", self.entries)
 
@@ -480,7 +480,7 @@ class SampleSizeBox(box.FullBox):
             self.entries = []
 
     def generate_fields(self):
-        super().generate_fields()
+        yield from super().generate_fields()
         yield ("sample size", self.sample_size)
         yield ("sample count", self.sample_count)
         if self.sample_size == 0:
@@ -502,7 +502,7 @@ class CompactSampleSizeBox(box.FullBox):
             buf.readbits(4)
 
     def generate_fields(self):
-        super().generate_fields()
+        yield from super().generate_fields()
         yield ("field size", self.field_size)
         yield ("sample count", self.sample_count)
         yield ("entries", self.entries)
@@ -520,7 +520,7 @@ class MovieExtendsHeader(box.FullBox):
             self.fragment_duration = buf.readint32()
 
     def generate_fields(self):
-        super().generate_fields()
+        yield from super().generate_fields()
         yield ("Fragment duration", self.fragment_duration)
 
 
@@ -537,7 +537,7 @@ class TrackExtendsBox(box.FullBox):
         self.default_sample_flags = buf.readint32()
 
     def generate_fields(self):
-        super().generate_fields()
+        yield from super().generate_fields()
         yield ("Track ID", self.track_id)
         yield (
             "Default sample description index",
@@ -589,7 +589,7 @@ class AvcCBox(box.Box):
         self.has_children = False
 
     def generate_fields(self):
-        super().generate_fields()
+        yield from super().generate_fields()
         yield ("Confiuration level", self.configuration_level)
         yield ("Profile", self.profile)
         yield ("Profile compatibility", self.profile_compatibility)

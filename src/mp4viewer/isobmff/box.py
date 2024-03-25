@@ -188,7 +188,7 @@ class Box:
         """
         Generator that yields either boxes or tuples.
         Each tuple shall be or format (name-of-field, actual-value, <optional display value>).
-        Subclasses shall call super().generate_fields() from the overriden functions.
+        Subclasses shall call `yield from super().generate_fields()` from the overriden functions.
         """
         yield ("size", self.size)
 
@@ -207,7 +207,7 @@ class FullBox(Box):
         self.consumed_bytes += 4
 
     def generate_fields(self):
-        super().generate_fields()
+        yield from super().generate_fields()
         yield ("version", self.version)
         yield ("flags", f"0x{self.flags:06X}")
 
@@ -227,7 +227,7 @@ class FileType(Box):
             self.consumed_bytes += 4
 
     def generate_fields(self):
-        super().generate_fields()
+        yield from super().generate_fields()
         yield ("major brand", self.major_brand)
         yield ("minor version", self.minor_version)
         yield ("brands", ",".join(self.brands))
