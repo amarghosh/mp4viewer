@@ -234,7 +234,7 @@ class FileType(Box):
 
     def __str__(self):
         # pylint: disable=consider-using-f-string
-        return "%s %s %d with %d brands %s" % (
+        return "%s major=%s minor=%x with %d brands <%s>" % (
             super().__str__(),
             self.major_brand,
             self.minor_version,
