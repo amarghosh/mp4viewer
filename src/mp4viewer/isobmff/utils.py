@@ -9,9 +9,9 @@ def error_print(s: str):
     Print to stderr.
     Use this for all errors so that we can easily redirect json output to a file from command line.
     """
-    COLOR_RED = "\033[31m"
-    ENDCOL = "\033[0m"
-    print(f"{COLOR_RED}{s}{ENDCOL}", file=sys.stderr)
+    color_red = "\033[31m"
+    endcol = "\033[0m"
+    print(f"{color_red}{s}{endcol}", file=sys.stderr)
 
 
 def parse_iso639_2_15bit(value):

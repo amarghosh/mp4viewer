@@ -50,11 +50,16 @@ class DataBuffer:
         # Number of bits consumed from the current byte (data[read_ptr])
         self.bit_position = 0
 
-        self.reset()
+        self._reset()
         self.readmore()
 
     def reset(self):
         """reset everything"""
+        self.source.seek(0, os.SEEK_SET)
+        self._reset()
+
+    def _reset(self):
+        """reset internal offsets, doesn't touch the source"""
         self.bit_position = 0
         self.stream_offset = 0
         self.buf_size = 0
@@ -266,13 +271,13 @@ class DataBuffer:
 
         self.source.seek(count - unread_loaded_bytes, os.SEEK_CUR)
         new_stream_offset = self.stream_offset + self.read_ptr + count
-        self.reset()
+        self._reset()
         self.stream_offset = new_stream_offset
 
     def seekto(self, pos):
         """Move the read pointer to to `pos`, relative to the start of stream"""
         self.source.seek(pos, os.SEEK_SET)
-        self.reset()
+        self._reset()
         self.stream_offset = pos
         self.readmore()
 
