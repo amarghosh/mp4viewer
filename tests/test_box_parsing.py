@@ -29,6 +29,58 @@ def test_ftyp():
         assert len(list(ftyp_box.generate_fields())) > 0
 
 
+def _validate_matrix_values(matrix):
+    # All 3x3 matrixes are set to the following
+    # 0x10000   0           0
+    # 0         0x10000     0
+    # 0         0           0x40000000
+    for i in range(3):
+        for j in range(3):
+            if i == j and i < 2:
+                assert matrix[i][j] == 0x10000
+            elif i == 2 and j == 2:
+                assert matrix[i][j] == 0x40000000
+            else:
+                assert matrix[i][j] == 0, f"{i},{j}={matrix[i][j]}"
+
+
+def _validate_movie_header_box(mvhd):
+    assert mvhd.boxtype == "mvhd"
+    assert mvhd.size == 108
+    assert mvhd.creation_time == 3531256179
+    assert mvhd.modification_time == 3531256179
+    assert mvhd.timescale == 1000
+    assert mvhd.duration == 5096
+    assert mvhd.rate == 0x10000
+    assert mvhd.volume == 0x100
+    assert mvhd.next_track_id == 0
+    _validate_matrix_values(mvhd.matrix)
+    assert len(list(mvhd.generate_fields())) > 0
+
+
+def _validate_trak_1(trak):
+    assert trak.boxtype == "trak"
+    assert trak.size == 0x64
+    assert len(trak.children) == 1
+    _validate_tkhd_1(trak.children[0])
+
+
+def _validate_tkhd_1(tkhd):
+    assert tkhd.boxtype == "tkhd"
+    assert tkhd.size == 0x5C
+    assert tkhd.flags == 7
+    assert tkhd.creation_time == 3531256179
+    assert tkhd.modification_time == 3531256179
+    assert tkhd.track_id == 1
+    assert tkhd.duration == 5096
+    assert tkhd.layer == 0xBB
+    assert tkhd.altgroup == 0xAA00
+    assert tkhd.volume == 0x0010
+    _validate_matrix_values(tkhd.matrix)
+    assert tkhd.width == 0x05A00000
+    assert tkhd.height == 0x05A00000
+
+
 def test_moov():
     """moov and its children"""
     with open("tests/moov.mp4.dat", "rb") as fd:
@@ -37,28 +89,13 @@ def test_moov():
         assert len(boxes) == 1
         moov = boxes[0]
         assert moov.boxtype == "moov"
-        assert moov.size == 116
-        assert len(moov.children) == 1
-        mvhd = moov.children[0]
-        assert mvhd.boxtype == "mvhd"
-        assert mvhd.size == 108
-        assert mvhd.creation_time == 3531256179
-        assert mvhd.modification_time == 3531256179
-        assert mvhd.timescale == 1000
-        assert mvhd.duration == 5096
-        assert mvhd.rate == 0x10000
-        assert mvhd.volume == 0x100
-        for i in range(3):
-            for j in range(3):
-                if i == j and i < 2:
-                    assert mvhd.matrix[i][j] == 0x10000
-                elif i == 2 and j == 2:
-                    assert mvhd.matrix[i][j] == 0x40000000
-                else:
-                    assert mvhd.matrix[i][j] == 0, f"{i},{j}={mvhd.matrix[i][j]}"
-        assert mvhd.next_track_id == 0
+        assert moov.size == 0xD8
+        assert len(moov.children) == 2, moov.children
         assert len(list(moov.generate_fields())) > 0
-        assert len(list(mvhd.generate_fields())) > 0
+        mvhd = moov.children[0]
+        _validate_movie_header_box(mvhd)
+        trak = moov.children[1]
+        _validate_trak_1(trak)
 
 
 if __name__ == "__main__":

@@ -43,7 +43,7 @@ class Box:
                 error_print(
                     f"\nInvalid data in box {self.boxtype} at {self.buffer_offset}"
                 )
-                remaining_bytes = self._remaining_bytes(buf)
+                remaining_bytes = self._remaining_bytes_to_skip(buf)
                 overflow = buf.current_position() + remaining_bytes - len(buf)
                 error_print(
                     f"Attempt to skip {remaining_bytes} bytes from "
@@ -62,7 +62,7 @@ class Box:
                 error_print(f"skipping the remaining {buf.remaining_bytes()} bytes.\n")
                 buf.skipbytes(buf.remaining_bytes())
 
-    def _remaining_bytes(self, buf):
+    def _remaining_bytes_to_skip(self, buf):
         if self.size == 0:
             bytes_to_skip = buf.remaining_bytes()
         else:
@@ -70,7 +70,7 @@ class Box:
         return bytes_to_skip
 
     def _skip_remaining_bytes(self, buf):
-        bytes_to_skip = self._remaining_bytes(buf)
+        bytes_to_skip = self._remaining_bytes_to_skip(buf)
         buf.skipbytes(bytes_to_skip)
         self.consumed_bytes += bytes_to_skip
 
@@ -106,8 +106,8 @@ class Box:
             if self.parent.consumed_bytes + size > self.parent.size:
                 # pylint: disable=consider-using-f-string
                 raise AssertionError(
-                    "Size error: parent %d, consumed %d, child says %d"
-                    % (self.parent.size, self.parent.consumed_bytes, size)
+                    "Size error: parent %s, consumed %d, child %s says %d"
+                    % (self.parent, self.parent.consumed_bytes, boxtype, size)
                 )
 
         self.size = size
@@ -130,14 +130,14 @@ class Box:
         This is called from the super().parse()
         """
         buf = parser.buf
-        while self.consumed_bytes + 8 < self.size:
+        while self.consumed_bytes + 8 <= self.size:
             try:
                 box = parser.getnextbox(self)
                 self.children.append(box)
                 self.consumed_bytes += box.size
             except AssertionError as e:
                 print(traceback.format_exc())
-                print(f"Error parsing children of {self}: {e}")
+                error_print(f"Error parsing children of {self}: {e}")
                 buf.seekto(self.buffer_offset + self.size)
                 self.consumed_bytes = self.size
 
@@ -193,7 +193,7 @@ class Box:
         yield ("size", self.size)
 
     def __str__(self):
-        return f"{self.boxtype} ({self.size} bytes)"
+        return f"<Box: {self.boxtype}, {self.size} bytes>"
 
 
 class FullBox(Box):
