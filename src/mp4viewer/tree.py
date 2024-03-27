@@ -18,11 +18,19 @@ class Attr:
 class Tree:
     """Class representing a Tree"""
 
-    def __init__(self, name, desc=None):
+    TREE_TYPE_ATOM = 0
+    TREE_TYPE_DICT = 1
+
+    def __init__(self, name, desc=None, tree_type=TREE_TYPE_ATOM):
         self.name = name
         self.desc = desc
+        self.tree_type = tree_type
         self.attrs = []
         self.children = []
+
+    def is_atom(self):
+        """Return true if this tree represents an ISO box"""
+        return self.tree_type == Tree.TREE_TYPE_ATOM
 
     def add_attr(self, *args):
         """Add an attribute to the root node of this tree"""
@@ -48,4 +56,4 @@ class Tree:
         return child
 
     def __str__(self):
-        return self.name
+        return f"Tree<{self.name}>"

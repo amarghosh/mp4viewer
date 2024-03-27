@@ -29,11 +29,15 @@ class JsonRenderer:
 
     def add_node(self, node, parent):
         """recursively serialise box data"""
-        if "children" not in parent:
-            parent["children"] = []
         j_node = {}
-        j_node["boxtype"] = {"fourcc": node.name, "description": node.desc}
-        parent["children"].append(j_node)
+        key_within_parent = "children"
+        if node.is_atom():
+            j_node["boxtype"] = {"fourcc": node.name, "description": node.desc}
+        else:
+            key_within_parent = node.name
+        if key_within_parent not in parent:
+            parent[key_within_parent] = []
+        parent[key_within_parent].append(j_node)
         for attr in node.attrs:
             if attr.display_value is not None:
                 j_node[attr.name] = {

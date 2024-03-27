@@ -4,7 +4,7 @@ import os
 import sys
 import argparse
 
-from mp4viewer.tree import Tree
+from mp4viewer.tree import Tree, Attr
 from mp4viewer.datasource import FileSource, DataBuffer
 from mp4viewer.console import ConsoleRenderer
 from mp4viewer.json_renderer import JsonRenderer
@@ -13,22 +13,40 @@ from mp4viewer.isobmff.parser import IsobmffParser, getboxdesc
 from mp4viewer.isobmff.box import Box
 
 
+def add_kv_list(node, key, items):
+    """Add a list of dict objects as a subtree"""
+    for index, item in enumerate(items):
+        kv_node = node.add_child(
+            Tree(key, str(index + 1), tree_type=Tree.TREE_TYPE_DICT)
+        )
+        for k, v in item.items():
+            if isinstance(v, Attr):
+                kv_node.add_attr(v)
+            else:
+                kv_node.add_attr(k, v)
+
+
 def get_box_node(box, args):
     """Get a tree node representing the box"""
     node = Tree(box.boxtype, getboxdesc(box.boxtype))
     for field in box.generate_fields():
         if isinstance(field, Box):
             add_box(node, field, args)
-        elif not isinstance(field, tuple):
+            continue
+        if not isinstance(field, tuple):
             raise TypeError(f"Expected a tuple, got a {type(field)}")
-        else:
-            # generate fields yields a tuple of order (name, value, [formatted_value])
-            value = field[1]
-            if args.truncate and isinstance(value, list) and len(value) > 16:
-                first3 = ",".join([str(i) for i in value[:3]])
-                last3 = ",".join([str(i) for i in value[-3:]])
-                value = f"[{first3} ... {last3}] {len(value)} items"
-            node.add_attr(field[0], value, field[2] if len(field) == 3 else None)
+        # generate fields yields a tuple of order (name, value, [formatted_value])
+        value = field[1]
+        # Take care of lists of dicts
+        if isinstance(value, list) and len(value) > 0 and isinstance(value[0], dict):
+            add_kv_list(node, field[0], value)
+            continue
+
+        if args.truncate and isinstance(value, list) and len(value) > 16:
+            first3 = ",".join([str(i) for i in value[:3]])
+            last3 = ",".join([str(i) for i in value[-3:]])
+            value = f"[{first3} ... {last3}] {len(value)} items"
+        node.add_attr(field[0], value, field[2] if len(field) == 3 else None)
     return node
 
 

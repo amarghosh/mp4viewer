@@ -55,8 +55,12 @@ class ConsoleRenderer:
 
     def show_node(self, node, prefix):
         """recursively display the node"""
-        header_color = ConsoleRenderer.COLOR_HEADER if self.use_colors else ""
-        attr_color = ConsoleRenderer.COLOR_ATTR if self.use_colors else ""
+        if node.is_atom():
+            header_color = ConsoleRenderer.COLOR_HEADER if self.use_colors else ""
+            attr_color = ConsoleRenderer.COLOR_ATTR if self.use_colors else ""
+        else:
+            header_color = ""
+            attr_color = ""
         header_prefix = prefix + self.header_prefix if len(prefix) else ""
         _write(
             f"{header_prefix}{self._wrap_color(node.name, header_color)}"

@@ -56,7 +56,12 @@ class GtkRenderer:
     def populate(self, datanode, parent=None):
         """Add entries for each attribute of the current node and its children (recursive)"""
         treenode = self.treestore.append(
-            parent, [self.format_node(datanode.name, datanode.desc, istitle=True)]
+            parent,
+            [
+                self.format_node(
+                    datanode.name, datanode.desc, istitle=datanode.is_atom()
+                )
+            ],
         )
         for attr in datanode.attrs:
             self.treestore.append(
