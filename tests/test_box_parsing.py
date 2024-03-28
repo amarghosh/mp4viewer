@@ -13,7 +13,7 @@ def _string_to_fourcc_int(s):
 
 def test_ftyp():
     """ftyp box"""
-    with open("tests/ftyp.mp4.dat", "rb") as fd:
+    with open("tests/ftyp.atom", "rb") as fd:
         parser = IsobmffParser(DataBuffer(FileSource(fd)))
         boxes = parser.getboxlist()
         assert len(boxes) == 1
@@ -60,9 +60,23 @@ def _validate_movie_header_box(mvhd):
 
 def _validate_trak_1(trak):
     assert trak.boxtype == "trak"
-    assert trak.size == 0x64
-    assert len(trak.children) == 1
+    assert trak.size == 0x88
+    assert len(trak.children) == 2
     _validate_tkhd_1(trak.children[0])
+    _validate_edts(trak.children[1])
+
+
+def _validate_edts(edts):
+    assert edts.boxtype == "edts"
+    assert edts.size == 0x24
+    assert len(edts.children) == 1
+    elst = edts.children[0]
+    assert len(elst.entries) == 1
+    entry = elst.entries[0]
+    assert entry["segment_duration"] == 37026990
+    assert entry["media_time"] == 3003
+    assert entry["media_rate_integer"] == 1
+    assert entry["media_rate_fraction"] == 0
 
 
 def _validate_tkhd_1(tkhd):
@@ -83,13 +97,13 @@ def _validate_tkhd_1(tkhd):
 
 def test_moov():
     """moov and its children"""
-    with open("tests/moov.mp4.dat", "rb") as fd:
+    with open("tests/moov.atom", "rb") as fd:
         parser = IsobmffParser(DataBuffer(FileSource(fd)))
         boxes = parser.getboxlist()
         assert len(boxes) == 1
         moov = boxes[0]
         assert moov.boxtype == "moov"
-        assert moov.size == 0xD8
+        assert moov.size == 0xFC
         assert len(moov.children) == 2, moov.children
         assert len(list(moov.generate_fields())) > 0
         mvhd = moov.children[0]

@@ -1,7 +1,7 @@
 """ Movie and track related boxes """
 
 # pylint: disable=too-many-instance-attributes
-
+from mp4viewer.tree import Attr
 from . import box
 from .utils import get_utc_from_seconds_since_1904
 from .utils import parse_iso639_2_15bit
@@ -112,6 +112,49 @@ class TrackHeader(box.FullBox):
         yield ("matrix", self.matrix)
         yield ("width", self.width)
         yield ("height", self.height)
+
+
+class EditList(box.FullBox):
+    """elst"""
+
+    def parse(self, parse_ctx):
+        super().parse(parse_ctx)
+        buf = parse_ctx.buf
+        entry_count = buf.readint32()
+        self.entries = []
+        for _ in range(entry_count):
+            if self.version == 0:
+                segment_duration = buf.readint32()
+                media_time = buf.readint32()
+            else:
+                segment_duration = buf.readint64()
+                media_time = buf.readint64()
+            media_rate_integer = buf.readint16()
+            media_rate_fraction = buf.readint16()
+            self.entries.append(
+                {
+                    "segment_duration": segment_duration,
+                    "media_time": media_time,
+                    "media_rate_integer": media_rate_integer,
+                    "media_rate_fraction": media_rate_fraction,
+                }
+            )
+
+    def generate_fields(self):
+        yield from super().generate_fields()
+        yield ("entry_count", len(self.entries))
+        mvhd = self.find_descendant_of_ancestor("moov", "mvhd")
+        entries = []
+        for entry in self.entries:
+            dup = entry.copy()
+            duration = entry["segment_duration"]
+            if mvhd is None:
+                str_duration = None
+            else:
+                str_duration = stringify_duration(duration / mvhd.timescale)
+            dup["segment_duration"] = Attr("segment_duration", duration, str_duration)
+            entries.append(dup)
+        yield ("entries", entries)
 
 
 class MediaHeader(box.FullBox):
@@ -611,6 +654,7 @@ class AvcCBox(box.Box):
 boxmap = {
     "mvhd": MovieHeader,
     "tkhd": TrackHeader,
+    "elst": EditList,
     "mdhd": MediaHeader,
     "vmhd": VideoMediaHeader,
     "smhd": SoundMediaHeader,
